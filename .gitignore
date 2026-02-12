@@ -205,3 +205,17 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Node.js
+node_modules/
+npm-debug.log*
+
+# React build output
+frontend/build/
+
+# Django static files (collected)
+staticfiles/
+
+# Coverage reports
+coverage/
+frontend/coverage/
