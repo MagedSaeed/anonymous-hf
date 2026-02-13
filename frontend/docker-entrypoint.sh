@@ -21,6 +21,17 @@ fi
 echo "Full BACKEND_URL will be: $FULL_BACKEND_URL"
 echo "Backend host:port for upstream: $BACKEND_HOST_PORT"
 
+# Resolve hostname to IPv4 to avoid nginx IPv6 timeout issues on Railway
+BACKEND_HOST=$(echo "$BACKEND_HOST_PORT" | cut -d: -f1)
+BACKEND_PORT=$(echo "$BACKEND_HOST_PORT" | cut -d: -f2)
+RESOLVED_IP=$(getent ahostsv4 "$BACKEND_HOST" 2>/dev/null | head -1 | awk '{print $1}')
+if [ -n "$RESOLVED_IP" ]; then
+    BACKEND_HOST_PORT="${RESOLVED_IP}:${BACKEND_PORT}"
+    echo "Resolved $BACKEND_HOST to IPv4: $RESOLVED_IP"
+else
+    echo "Could not resolve to IPv4, using hostname: $BACKEND_HOST_PORT"
+fi
+
 # Test backend connectivity
 echo "=== Testing backend connectivity ==="
 if wget --spider --timeout=10 --tries=3 "$FULL_BACKEND_URL/admin" 2>/dev/null; then
@@ -54,5 +65,5 @@ chown -R nginx:nginx /var/log/nginx
 
 echo "=== Starting nginx ==="
 
-# Start nginx in foreground
-nginx -g 'daemon off;'
+# Start nginx in foreground with limited worker processes
+nginx -g 'daemon off; worker_processes 2;'
