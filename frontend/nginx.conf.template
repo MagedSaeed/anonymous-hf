@@ -4,47 +4,62 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
+    # DNS resolver for dynamic upstream resolution
+    # Uses system DNS with ipv6=off to avoid Railway IPv6 timeout issues
+    # re-resolves every 30s so backend IP changes are picked up automatically
+    resolver ${DNS_RESOLVER} valid=30s ipv6=off;
+
+    # Backend upstream variable — using a variable forces nginx to
+    # re-resolve via the resolver directive on each request, instead of
+    # caching the IP at config-load time.
+    set $backend http://${BACKEND_URL};
+
     # API and auth routes -> backend
     location /api/ {
-        proxy_pass http://${BACKEND_URL};
+        proxy_pass $backend;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto https;
         proxy_read_timeout 120s;
+        proxy_connect_timeout 10s;
     }
 
     location /accounts/ {
-        proxy_pass http://${BACKEND_URL};
+        proxy_pass $backend;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto https;
+        proxy_connect_timeout 10s;
     }
 
     location /admin/ {
-        proxy_pass http://${BACKEND_URL};
+        proxy_pass $backend;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto https;
+        proxy_connect_timeout 10s;
     }
 
     # Proxy requests -> backend (streaming support)
     location /a/ {
-        proxy_pass http://${BACKEND_URL};
+        proxy_pass $backend;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto https;
         proxy_read_timeout 300s;
+        proxy_connect_timeout 10s;
         proxy_buffering off;
     }
 
     # Django static files (admin, DRF) -> backend (served by whitenoise)
     location /static/ {
-        proxy_pass http://${BACKEND_URL};
+        proxy_pass $backend;
         proxy_set_header Host $host;
+        proxy_connect_timeout 10s;
     }
 
     # SPA fallback - serve index.html for all frontend routes

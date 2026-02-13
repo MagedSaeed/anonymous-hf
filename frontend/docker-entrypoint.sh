@@ -21,30 +21,42 @@ fi
 echo "Full BACKEND_URL will be: $FULL_BACKEND_URL"
 echo "Backend host:port for upstream: $BACKEND_HOST_PORT"
 
-# Resolve hostname to IPv4 to avoid nginx IPv6 timeout issues on Railway
+# Extract DNS resolver from /etc/resolv.conf for nginx resolver directive.
+# This allows nginx to re-resolve the backend hostname dynamically,
+# so if the backend gets a new IP (e.g. after Railway redeploy), nginx picks it up.
+DNS_RESOLVER=$(grep -m1 '^nameserver' /etc/resolv.conf | awk '{print $2}')
+if [ -z "$DNS_RESOLVER" ]; then
+    # Fallback to public DNS
+    DNS_RESOLVER="8.8.8.8 1.1.1.1"
+    echo "No nameserver in resolv.conf, using fallback: $DNS_RESOLVER"
+else
+    echo "Using DNS resolver from resolv.conf: $DNS_RESOLVER"
+fi
+export DNS_RESOLVER
+
+# Test backend connectivity (informational only, nginx will keep retrying)
+echo "=== Testing backend connectivity ==="
 BACKEND_HOST=$(echo "$BACKEND_HOST_PORT" | cut -d: -f1)
-BACKEND_PORT=$(echo "$BACKEND_HOST_PORT" | cut -d: -f2)
 RESOLVED_IP=$(getent ahostsv4 "$BACKEND_HOST" 2>/dev/null | head -1 | awk '{print $1}')
 if [ -n "$RESOLVED_IP" ]; then
-    BACKEND_HOST_PORT="${RESOLVED_IP}:${BACKEND_PORT}"
-    echo "Resolved $BACKEND_HOST to IPv4: $RESOLVED_IP"
+    echo "Backend $BACKEND_HOST resolves to IPv4: $RESOLVED_IP"
 else
-    echo "Could not resolve to IPv4, using hostname: $BACKEND_HOST_PORT"
+    echo "Could not resolve $BACKEND_HOST to IPv4 (nginx will use resolver directive)"
 fi
 
-# Test backend connectivity
-echo "=== Testing backend connectivity ==="
-if wget --spider --timeout=10 --tries=3 "$FULL_BACKEND_URL/admin" 2>/dev/null; then
+if wget --spider --timeout=10 --tries=2 "$FULL_BACKEND_URL/admin" 2>/dev/null; then
     echo "Backend is reachable at $FULL_BACKEND_URL"
 else
-    echo "Backend not immediately reachable - nginx will retry"
+    echo "Backend not immediately reachable - nginx resolver will keep retrying"
 fi
 
-echo "Using backend address: $BACKEND_HOST_PORT"
+# Keep the hostname (NOT the resolved IP) so nginx can re-resolve dynamically
+echo "Using backend address for nginx: $BACKEND_HOST_PORT (hostname, not hardcoded IP)"
 
 # Generate nginx config from template
+# Both BACKEND_URL (host:port) and DNS_RESOLVER are substituted
 echo "=== Generating nginx configuration ==="
-BACKEND_URL="$BACKEND_HOST_PORT" envsubst '$BACKEND_URL' < /etc/nginx/nginx.conf.template > /etc/nginx/conf.d/default.conf
+BACKEND_URL="$BACKEND_HOST_PORT" envsubst '$BACKEND_URL $DNS_RESOLVER' < /etc/nginx/nginx.conf.template > /etc/nginx/conf.d/default.conf
 
 # Test nginx config
 echo "=== Testing nginx configuration ==="
