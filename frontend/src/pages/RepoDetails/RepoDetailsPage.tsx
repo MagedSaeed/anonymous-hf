@@ -384,9 +384,9 @@ export default function RepoDetailsPage() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 pt-4 border-t border-slate-200 dark:border-slate-700">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2.5 pt-4 border-t border-slate-200 dark:border-slate-700">
           {repo.status === 'deleted' ? (
-            <>
+            <div className="flex items-center gap-2.5">
               <button onClick={handleRestore} className="btn-secondary text-sm">
                 Restore
               </button>
@@ -396,7 +396,7 @@ export default function RepoDetailsPage() {
               >
                 Permanently Delete
               </button>
-            </>
+            </div>
           ) : (
             <>
               <div className="flex items-center gap-1.5">
@@ -412,20 +412,22 @@ export default function RepoDetailsPage() {
                   Set Expiry
                 </button>
               </div>
-              <a
-                href={anonUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-secondary text-sm"
-              >
-                Preview
-              </a>
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="btn-danger text-sm ml-auto"
-              >
-                Delete
-              </button>
+              <div className="flex items-center gap-2.5 sm:ml-auto">
+                <a
+                  href={anonUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-secondary text-sm"
+                >
+                  Preview
+                </a>
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="btn-danger text-sm"
+                >
+                  Delete
+                </button>
+              </div>
             </>
           )}
         </div>
