@@ -1,0 +1,24 @@
+{
+  "name": "Anonymous HF - Blind Review for HuggingFace Repos",
+  "short_name": "Anonymous HF",
+  "description": "Anonymous proxy for HuggingFace repositories for double-blind peer review",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#fbbf24",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
