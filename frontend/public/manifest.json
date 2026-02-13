@@ -4,7 +4,7 @@
   "description": "Anonymous proxy for HuggingFace repositories for double-blind peer review",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f8fafc",
+  "background_color": "#fbbf24",
   "theme_color": "#fbbf24",
   "orientation": "any",
   "icons": [
