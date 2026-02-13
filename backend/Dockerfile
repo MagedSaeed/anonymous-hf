@@ -20,4 +20,4 @@ RUN uv run python manage.py collectstatic --noinput 2>/dev/null || true
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "uv run python manage.py migrate --noinput && uv run gunicorn anonymous_hf.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 120"]
+CMD ["sh", "-c", "uv run python manage.py migrate --noinput && uv run python manage.py setup_superuser && uv run gunicorn anonymous_hf.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 120"]
