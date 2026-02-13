@@ -63,7 +63,10 @@ mkdir -p /var/log/nginx
 touch /var/log/nginx/access.log /var/log/nginx/error.log
 chown -R nginx:nginx /var/log/nginx
 
+# Limit nginx worker processes (default 'auto' spawns too many on Railway)
+sed -i 's/worker_processes.*/worker_processes 2;/' /etc/nginx/nginx.conf
+
 echo "=== Starting nginx ==="
 
-# Start nginx in foreground with limited worker processes
-nginx -g 'daemon off; worker_processes 2;'
+# Start nginx in foreground
+nginx -g 'daemon off;'
