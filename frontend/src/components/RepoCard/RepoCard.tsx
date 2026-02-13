@@ -17,7 +17,7 @@ export default function RepoCard({ repo }: RepoCardProps) {
   const hfUrl = repoId ? buildHfUrl(repo.repo_type, repoId) : repo.original_url
 
   return (
-    <div className="bg-white border border-slate-200/60 rounded-xl p-4 hover:border-slate-300 hover:shadow-sm transition-all duration-150 dark:bg-slate-800 dark:border-slate-700 dark:hover:border-slate-600">
+    <div className="bg-white border border-slate-200/60 rounded-xl p-4 hover:border-slate-300 hover:shadow-sm transition-all duration-150 dark:bg-slate-800 dark:border-slate-700 dark:hover:border-slate-600 overflow-hidden">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
           <StatusBadge status={repo.repo_type} />
@@ -26,12 +26,12 @@ export default function RepoCard({ repo }: RepoCardProps) {
         <span className="text-xs text-slate-500 dark:text-slate-400">{repo.view_count} views</span>
       </div>
 
-      <div className="mb-3">
+      <div className="mb-3 min-w-0">
         <a
           href={hfUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm font-medium text-slate-800 hover:text-amber-700 transition-colors dark:text-slate-200 dark:hover:text-amber-400"
+          className="text-sm font-medium text-slate-800 hover:text-amber-700 transition-colors dark:text-slate-200 dark:hover:text-amber-400 block truncate"
           title={repo.original_url}
         >
           {repoId || repo.original_url}
@@ -39,7 +39,7 @@ export default function RepoCard({ repo }: RepoCardProps) {
         <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Branch: {repo.branch}</p>
       </div>
 
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-3 min-w-0">
         <a
           href={fullUrl}
           target="_blank"

@@ -636,11 +636,11 @@ export default function PublicViewerPage() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       {/* Header */}
       <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-        <div className="max-w-4xl mx-auto px-4 flex items-center justify-between h-12">
-          <div className="flex items-center gap-3">
+        <div className="max-w-4xl mx-auto px-4 flex items-center justify-between min-h-[3rem] py-2 gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-wrap">
             <a
               href="/"
-              className="flex items-center gap-1.5 text-sm font-semibold text-slate-900 dark:text-slate-100 hover:text-amber-700 dark:hover:text-amber-400 transition-colors"
+              className="flex items-center gap-1.5 text-sm font-semibold text-slate-900 dark:text-slate-100 hover:text-amber-700 dark:hover:text-amber-400 transition-colors shrink-0"
             >
               <svg
                 className="w-4 h-4 text-amber-700"
@@ -653,15 +653,16 @@ export default function PublicViewerPage() {
               >
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               </svg>
-              Anonymous HF
+              <span className="hidden sm:inline">Anonymous HF</span>
+              <span className="sm:hidden">AnonHF</span>
             </a>
-            <span className="text-slate-300 dark:text-slate-600">|</span>
-            <code className="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
+            <span className="text-slate-300 dark:text-slate-600 hidden sm:inline">|</span>
+            <code className="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded truncate max-w-[120px] sm:max-w-none">
               {anonymousId}
             </code>
             {repoInfo && (
               <span
-                className={`text-xs font-medium px-2 py-0.5 rounded ${
+                className={`text-xs font-medium px-2 py-0.5 rounded shrink-0 ${
                   repoInfo.repo_type === 'dataset'
                     ? 'bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-400'
                     : 'bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-400'
@@ -671,18 +672,19 @@ export default function PublicViewerPage() {
               </span>
             )}
             {frontmatter?.pretty_name && isRootView && (
-              <>
-                <span className="text-slate-300 dark:text-slate-600">|</span>
-                <span className="text-sm text-slate-700 dark:text-slate-300 font-medium">{frontmatter.pretty_name}</span>
-              </>
+              <span className="text-sm text-slate-700 dark:text-slate-300 font-medium hidden md:inline">
+                <span className="text-slate-300 dark:text-slate-600 mr-2">|</span>
+                {frontmatter.pretty_name}
+              </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {repoInfo?.allow_download && (
               <>
                 <a
                   href={`${API_BASE}/a/${anonymousId}/download/`}
                   className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors"
+                  title="Download ZIP"
                 >
                   <svg
                     className="w-4 h-4"
@@ -697,7 +699,7 @@ export default function PublicViewerPage() {
                       d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                     />
                   </svg>
-                  Download ZIP
+                  <span className="hidden sm:inline">Download ZIP</span>
                 </a>
                 <div className="w-px h-5 bg-slate-200 dark:bg-slate-700" />
               </>

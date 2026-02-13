@@ -299,7 +299,7 @@ export default function RepoDetailsPage() {
           </div>
           <div>
             <p className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide mb-0.5">Revision</p>
-            <div className="flex items-center gap-1.5 mt-1">
+            <div className="flex flex-col sm:flex-row gap-1.5 mt-1">
               <input
                 type="text"
                 value={editBranch}
@@ -307,21 +307,23 @@ export default function RepoDetailsPage() {
                 placeholder="main"
                 className="flex-1 px-2 py-1.5 text-sm border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent font-mono"
               />
-              <button
-                onClick={handleUpdateBranch}
-                disabled={savingBranch || editBranch.trim() === repo.branch}
-                className="btn-secondary text-sm shrink-0 disabled:opacity-40"
-              >
-                {savingBranch ? 'Saving...' : 'Update'}
-              </button>
-              <button
-                onClick={handleSyncLatest}
-                disabled={syncingLatest}
-                className="btn-secondary text-sm shrink-0 disabled:opacity-40"
-                title="Fetch the latest commit SHA from the main branch and pin to it"
-              >
-                {syncingLatest ? 'Syncing...' : 'Pin to Latest'}
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={handleUpdateBranch}
+                  disabled={savingBranch || editBranch.trim() === repo.branch}
+                  className="btn-secondary text-sm shrink-0 disabled:opacity-40"
+                >
+                  {savingBranch ? 'Saving...' : 'Update'}
+                </button>
+                <button
+                  onClick={handleSyncLatest}
+                  disabled={syncingLatest}
+                  className="btn-secondary text-sm shrink-0 disabled:opacity-40"
+                  title="Fetch the latest commit SHA from the main branch and pin to it"
+                >
+                  {syncingLatest ? 'Syncing...' : 'Pin to Latest'}
+                </button>
+              </div>
             </div>
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
               Branch, tag, or commit SHA. {repo.branch === 'main' ? 'Currently tracking latest on main.' : `Pinned to ${repo.branch.length > 12 ? 'commit ' + repo.branch.slice(0, 8) + '...' : repo.branch}.`}
@@ -343,7 +345,7 @@ export default function RepoDetailsPage() {
           </div>
           <div>
             <p className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide mb-0.5">Colab Notebook</p>
-            <div className="flex items-center gap-1.5 mt-1">
+            <div className="flex flex-col sm:flex-row gap-1.5 mt-1">
               <input
                 type="url"
                 value={editColabUrl}
@@ -351,22 +353,24 @@ export default function RepoDetailsPage() {
                 placeholder="https://colab.research.google.com/..."
                 className="flex-1 px-2 py-1.5 text-sm border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent font-mono"
               />
-              <button
-                onClick={handleUpdateColab}
-                disabled={savingColab || editColabUrl.trim() === (repo.colab_url || '')}
-                className="btn-secondary text-sm shrink-0 disabled:opacity-40"
-              >
-                {savingColab ? 'Saving...' : editColabUrl.trim() && !repo.colab_url ? 'Add' : 'Update'}
-              </button>
-              {repo.colab_url && (
+              <div className="flex items-center gap-1.5">
                 <button
-                  onClick={handleRemoveColab}
-                  disabled={savingColab}
-                  className="btn-danger text-sm shrink-0 disabled:opacity-40"
+                  onClick={handleUpdateColab}
+                  disabled={savingColab || editColabUrl.trim() === (repo.colab_url || '')}
+                  className="btn-secondary text-sm shrink-0 disabled:opacity-40"
                 >
-                  Remove
+                  {savingColab ? 'Saving...' : editColabUrl.trim() && !repo.colab_url ? 'Add' : 'Update'}
                 </button>
-              )}
+                {repo.colab_url && (
+                  <button
+                    onClick={handleRemoveColab}
+                    disabled={savingColab}
+                    className="btn-danger text-sm shrink-0 disabled:opacity-40"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
             </div>
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
               {repo.colab_url ? 'Linked Colab notebook shown to reviewers.' : 'Optional: link a Colab notebook for reviewers.'}
@@ -380,7 +384,7 @@ export default function RepoDetailsPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 pt-4 border-t border-slate-200 dark:border-slate-700">
+        <div className="flex flex-wrap items-center gap-2.5 pt-4 border-t border-slate-200 dark:border-slate-700">
           {repo.status === 'deleted' ? (
             <>
               <button onClick={handleRestore} className="btn-secondary text-sm">
@@ -483,7 +487,7 @@ export default function RepoDetailsPage() {
                     return (
                       <div
                         key={i}
-                        className="flex items-center justify-between py-2.5 border-b border-slate-50 dark:border-slate-700 last:border-b-0"
+                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 py-2.5 border-b border-slate-50 dark:border-slate-700 last:border-b-0"
                       >
                         <div className="flex items-center gap-2.5">
                           <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${

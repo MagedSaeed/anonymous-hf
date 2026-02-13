@@ -39,10 +39,11 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between gap-3 mb-6">
         <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">My Repositories</h1>
-        <Link to="/app/create" className="btn-primary">
-          + Create Anonymous Repo
+        <Link to="/app/create" className="btn-primary shrink-0">
+          <span className="hidden sm:inline">+ Create Anonymous Repo</span>
+          <span className="sm:hidden">+ Create</span>
         </Link>
       </div>
 
@@ -52,12 +53,12 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="flex items-center gap-1.5 mb-5">
+      <div className="flex items-center gap-1.5 mb-5 flex-wrap">
         {['', 'active', 'expired', 'deleted'].map((status) => (
           <button
             key={status}
             onClick={() => setStatusFilter(status)}
-            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors shrink-0 ${
               statusFilter === status
                 ? 'bg-amber-400 text-slate-900'
                 : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700'

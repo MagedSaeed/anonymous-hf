@@ -75,12 +75,12 @@ function SuccessView({ result, initialColabUrl, apiCall }: SuccessViewProps) {
 
         <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 mb-6">
           <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Anonymous URL</p>
-          <div className="flex items-center gap-2 justify-center">
+          <div className="flex items-center gap-2 justify-center min-w-0">
             <a
               href={anonUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm font-mono bg-white dark:bg-slate-900 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300"
+              className="text-sm font-mono bg-white dark:bg-slate-900 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 truncate"
             >
               {anonUrl}
             </a>
@@ -113,11 +113,11 @@ function SuccessView({ result, initialColabUrl, apiCall }: SuccessViewProps) {
           {colabError && <p className="text-red-600 dark:text-red-400 text-xs mt-1">{colabError}</p>}
         </div>
 
-        <div className="flex items-center justify-center gap-3">
-          <Link to={`/app/repos/${result.id}`} className="btn-primary">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <Link to={`/app/repos/${result.id}`} className="btn-primary w-full sm:w-auto">
             View Details
           </Link>
-          <Link to="/app/dashboard" className="btn-secondary">
+          <Link to="/app/dashboard" className="btn-secondary w-full sm:w-auto">
             Back to Dashboard
           </Link>
         </div>

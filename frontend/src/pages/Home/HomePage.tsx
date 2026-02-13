@@ -31,11 +31,11 @@ export default function HomePage() {
         </p>
 
         {user ? (
-          <div className="flex items-center justify-center gap-3">
-            <Link to="/app/dashboard" className="btn-primary">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link to="/app/dashboard" className="btn-primary w-full sm:w-auto">
               Go to Dashboard
             </Link>
-            <Link to="/app/create" className="btn-secondary">
+            <Link to="/app/create" className="btn-secondary w-full sm:w-auto">
               Create Anonymous Repo
             </Link>
           </div>
