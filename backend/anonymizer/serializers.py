@@ -9,6 +9,8 @@ class AnonymousRepoSerializer(serializers.ModelSerializer):
     days_until_expiry = serializers.SerializerMethodField()
     is_expired = serializers.SerializerMethodField()
     anonymous_url = serializers.CharField(read_only=True)
+    visitor_views = serializers.SerializerMethodField()
+    visitor_downloads = serializers.SerializerMethodField()
 
     class Meta:
         model = AnonymousRepo
@@ -23,8 +25,8 @@ class AnonymousRepoSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "expires_at",
-            "view_count",
-            "access_count",
+            "visitor_views",
+            "visitor_downloads",
             "days_until_expiry",
             "is_expired",
             "allow_download",
@@ -36,8 +38,6 @@ class AnonymousRepoSerializer(serializers.ModelSerializer):
             "anonymous_url",
             "created_at",
             "updated_at",
-            "view_count",
-            "access_count",
         ]
 
     def get_days_until_expiry(self, obj):
@@ -48,6 +48,12 @@ class AnonymousRepoSerializer(serializers.ModelSerializer):
 
     def get_is_expired(self, obj):
         return obj.status == "expired" or (obj.expires_at and obj.expires_at < timezone.now())
+
+    def get_visitor_views(self, obj):
+        return obj.activity_logs.filter(action="viewed").exclude(actor_type="owner").count()
+
+    def get_visitor_downloads(self, obj):
+        return obj.activity_logs.filter(action="downloaded").exclude(actor_type="owner").count()
 
 
 class CreateRepoSerializer(serializers.Serializer):

@@ -23,7 +23,10 @@ export default function RepoCard({ repo }: RepoCardProps) {
           <StatusBadge status={repo.repo_type} />
           <StatusBadge status={repo.status} />
         </div>
-        <span className="text-xs text-slate-500 dark:text-slate-400">{repo.view_count} views</span>
+        <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+          <span>{repo.visitor_views} visits</span>
+          <span>{repo.visitor_downloads} downloads</span>
+        </div>
       </div>
 
       <div className="mb-3 min-w-0">

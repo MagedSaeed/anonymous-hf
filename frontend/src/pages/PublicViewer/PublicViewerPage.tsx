@@ -507,6 +507,27 @@ export default function PublicViewerPage() {
             {error.title}
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">{error.description}</p>
+          {repoInfo?.identity_revealed && repoInfo.original_url && (
+            <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-6 text-left">
+              <p className="text-xs font-medium text-amber-600 dark:text-amber-400 uppercase tracking-wide mb-2">
+                Identity Revealed
+              </p>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
+                The review period has ended. The original repository is:
+              </p>
+              <a
+                href={repoInfo.original_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 bg-white dark:bg-slate-900 px-3 py-2 rounded-md border border-amber-200 dark:border-amber-700 break-all transition-colors"
+              >
+                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+                {repoInfo.original_url}
+              </a>
+            </div>
+          )}
           {error.tips && error.tips.length > 0 && (
             <div className="text-left bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 mb-6">
               <p className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide mb-2.5">

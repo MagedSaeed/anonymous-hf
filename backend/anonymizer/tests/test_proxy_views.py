@@ -90,20 +90,6 @@ class TestProxyFileView:
         assert resp.status_code == 404
 
     @responses.activate
-    def test_proxy_increments_counters(self, client, active_repo):
-        responses.add(
-            responses.GET,
-            "https://huggingface.co/datasets/testuser/testrepo/resolve/main/README.md",
-            body=b"content",
-            status=200,
-        )
-
-        client.get(f"/api/a/{active_repo.anonymous_id}/resolve/README.md")
-        active_repo.refresh_from_db()
-        assert active_repo.access_count == 1
-        assert active_repo.view_count == 1
-
-    @responses.activate
     def test_proxy_creates_activity_log(self, client, active_repo):
         responses.add(
             responses.GET,

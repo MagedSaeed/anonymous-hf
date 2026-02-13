@@ -274,7 +274,10 @@ export default function RepoDetailsPage() {
             <StatusBadge status={repo.repo_type} />
             <StatusBadge status={repo.status} />
           </div>
-          <span className="text-sm text-slate-500 dark:text-slate-400">{repo.view_count} views</span>
+          <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+            <span>{repo.visitor_views} visits</span>
+            <span>{repo.visitor_downloads} downloads</span>
+          </div>
         </div>
 
         <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">Repository Details</h1>

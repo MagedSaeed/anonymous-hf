@@ -21,8 +21,8 @@ export interface AnonymousRepo {
   created_at: string
   updated_at: string
   expires_at: string
-  view_count: number
-  access_count: number
+  visitor_views: number
+  visitor_downloads: number
   days_until_expiry: number
   is_expired: boolean
   allow_download: boolean
@@ -38,6 +38,8 @@ export interface RepoInfo {
   expires_at: string
   allow_download: boolean
   colab_url: string
+  identity_revealed?: boolean
+  original_url?: string
 }
 
 export interface ActivityLog {

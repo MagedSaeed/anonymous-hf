@@ -102,12 +102,6 @@ class ProxyFileView(View):
                 status=hf_response.status_code,
             )
 
-        # Update counters
-        AnonymousRepo.objects.filter(pk=repo.pk).update(
-            access_count=repo.access_count + 1,
-            view_count=repo.view_count + 1,
-        )
-
         # Log access
         log_access(repo, "viewed", request)
 
@@ -149,23 +143,40 @@ class ProxyTreeView(View):
 
 
 class ProxyInfoView(View):
-    """Return basic anonymous repo metadata (no sensitive data)."""
+    """Return basic anonymous repo metadata.
+
+    For expired repos, reveals the original HuggingFace URL so reviewers
+    can find the real identity after the review period is over.
+    """
 
     def get(self, request, anonymous_id):
-        repo = get_repo_or_404(anonymous_id)
+        try:
+            repo = AnonymousRepo.objects.get(anonymous_id=anonymous_id)
+        except AnonymousRepo.DoesNotExist:
+            raise Http404("Anonymous repository not found")
 
-        return JsonResponse(
-            {
-                "anonymous_id": repo.anonymous_id,
-                "repo_type": repo.repo_type,
-                "branch": repo.branch,
-                "status": repo.status,
-                "created_at": repo.created_at.isoformat(),
-                "expires_at": repo.expires_at.isoformat(),
-                "allow_download": repo.allow_download,
-                "colab_url": repo.colab_url,
-            }
-        )
+        if repo.status == "deleted":
+            raise Http404("This anonymous repository has been deleted")
+
+        # Check expiry (updates status if needed)
+        expired = repo.is_expired()
+
+        data = {
+            "anonymous_id": repo.anonymous_id,
+            "repo_type": repo.repo_type,
+            "branch": repo.branch,
+            "status": repo.status,
+            "created_at": repo.created_at.isoformat(),
+            "expires_at": repo.expires_at.isoformat(),
+            "allow_download": repo.allow_download,
+            "colab_url": repo.colab_url,
+        }
+
+        if expired:
+            data["identity_revealed"] = True
+            data["original_url"] = repo.original_url
+
+        return JsonResponse(data)
 
 
 class _ZipStreamBuffer:
