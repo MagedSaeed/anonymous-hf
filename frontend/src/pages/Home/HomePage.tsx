@@ -8,18 +8,8 @@ export default function HomePage() {
     <div>
       {/* Hero */}
       <div className="text-center py-16 sm:py-20">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950 mb-6">
-          <svg
-            className="w-6 h-6 text-amber-500"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-          </svg>
+        <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-amber-50 dark:bg-amber-950 mb-6">
+          <img src="/favicon.svg" alt="Anonymous HF" className="w-9 h-9" />
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-3 tracking-tight">
           Anonymous HuggingFace

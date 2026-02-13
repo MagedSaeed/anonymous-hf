@@ -81,17 +81,7 @@ export default function Navbar() {
             to="/app"
             className="flex items-center gap-2 text-base font-bold tracking-tight text-slate-900 hover:text-amber-600 transition-colors dark:text-slate-100 dark:hover:text-amber-400"
           >
-            <svg
-              className="w-5 h-5 text-amber-500"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-            </svg>
+            <img src="/favicon.svg" alt="" className="w-6 h-6" />
             <span className="hidden sm:inline">Anonymous HF</span>
             <span className="sm:hidden">AnonHF</span>
           </Link>

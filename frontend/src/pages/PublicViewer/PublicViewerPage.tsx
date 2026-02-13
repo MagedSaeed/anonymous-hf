@@ -481,17 +481,7 @@ export default function PublicViewerPage() {
               href="/"
               className="flex items-center gap-1.5 text-sm font-semibold text-slate-900 dark:text-slate-100 hover:text-amber-700 dark:hover:text-amber-400 transition-colors"
             >
-              <svg
-                className="w-4 h-4 text-amber-700"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              </svg>
+              <img src="/favicon.svg" alt="" className="w-5 h-5" />
               Anonymous HF
             </a>
             <ThemeToggle />
@@ -642,17 +632,7 @@ export default function PublicViewerPage() {
               href="/"
               className="flex items-center gap-1.5 text-sm font-semibold text-slate-900 dark:text-slate-100 hover:text-amber-700 dark:hover:text-amber-400 transition-colors shrink-0"
             >
-              <svg
-                className="w-4 h-4 text-amber-700"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              </svg>
+              <img src="/favicon.svg" alt="" className="w-5 h-5" />
               <span className="hidden sm:inline">Anonymous HF</span>
               <span className="sm:hidden">AnonHF</span>
             </a>

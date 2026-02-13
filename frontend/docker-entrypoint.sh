@@ -24,12 +24,16 @@ echo "Backend host:port for upstream: $BACKEND_HOST_PORT"
 # Extract DNS resolver from /etc/resolv.conf for nginx resolver directive.
 # This allows nginx to re-resolve the backend hostname dynamically,
 # so if the backend gets a new IP (e.g. after Railway redeploy), nginx picks it up.
-DNS_RESOLVER=$(grep -m1 '^nameserver' /etc/resolv.conf | awk '{print $2}')
-if [ -z "$DNS_RESOLVER" ]; then
-    # Fallback to public DNS
+RAW_RESOLVER=$(grep -m1 '^nameserver' /etc/resolv.conf | awk '{print $2}')
+if [ -z "$RAW_RESOLVER" ]; then
     DNS_RESOLVER="8.8.8.8 1.1.1.1"
     echo "No nameserver in resolv.conf, using fallback: $DNS_RESOLVER"
+elif echo "$RAW_RESOLVER" | grep -q ':'; then
+    # IPv6 address — nginx requires brackets around IPv6 in resolver directive
+    DNS_RESOLVER="[$RAW_RESOLVER]"
+    echo "Using IPv6 DNS resolver from resolv.conf: $DNS_RESOLVER"
 else
+    DNS_RESOLVER="$RAW_RESOLVER"
     echo "Using DNS resolver from resolv.conf: $DNS_RESOLVER"
 fi
 export DNS_RESOLVER
