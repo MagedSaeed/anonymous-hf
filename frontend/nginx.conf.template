@@ -41,6 +41,12 @@ server {
         proxy_buffering off;
     }
 
+    # Django static files (admin, DRF) -> backend (served by whitenoise)
+    location /static/ {
+        proxy_pass http://${BACKEND_URL};
+        proxy_set_header Host $host;
+    }
+
     # SPA fallback - serve index.html for all frontend routes
     location / {
         try_files $uri $uri/ /index.html;
