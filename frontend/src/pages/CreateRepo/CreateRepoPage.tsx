@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import type { Method } from 'axios'
 import { useAuth } from '../../contexts/AuthContext'
 import CopyButton from '../../components/CopyButton/CopyButton'
 import CodeSnippet from '../../components/CodeSnippet/CodeSnippet'
@@ -30,7 +31,7 @@ function looksLikeUrl(input: string): boolean {
 interface SuccessViewProps {
   result: CreateResult
   initialColabUrl: string
-  apiCall: <T>(method: string, url: string, data?: unknown) => Promise<{ data: T }>
+  apiCall: <T>(method: Method, url: string, data?: unknown) => Promise<{ data: T }>
 }
 
 function SuccessView({ result, initialColabUrl, apiCall }: SuccessViewProps) {

@@ -26,6 +26,16 @@ export default defineConfig(() => {
         },
       },
     },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['react', 'react-dom', 'react-router-dom', 'axios'],
+            markdown: ['react-markdown', 'remark-gfm'],
+          },
+        },
+      },
+    },
     test: {
       globals: true,
       environment: 'jsdom',
