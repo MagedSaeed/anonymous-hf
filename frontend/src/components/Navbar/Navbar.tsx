@@ -36,7 +36,7 @@ function ThemeToggle() {
 }
 
 export default function Navbar() {
-  const { user, logout } = useAuth()
+  const { user, loading, logout } = useAuth()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -87,7 +87,13 @@ export default function Navbar() {
           </Link>
 
           <div className="flex items-center gap-1">
-            {user ? (
+            {loading ? (
+              <>
+                <div className="w-16 h-7 bg-slate-100 dark:bg-slate-800 rounded-md animate-pulse" />
+                <div className="w-px h-5 bg-slate-200 dark:bg-slate-700 mx-1" />
+                <ThemeToggle />
+              </>
+            ) : user ? (
               <>
                 {/* Desktop nav links */}
                 <div className="hidden sm:flex items-center gap-1">

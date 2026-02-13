@@ -2,7 +2,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { Link } from 'react-router-dom'
 
 export default function HomePage() {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
 
   return (
     <div>
@@ -20,7 +20,9 @@ export default function HomePage() {
           reviewers full access.
         </p>
 
-        {user ? (
+        {loading ? (
+          <div className="h-11 w-52 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse mx-auto" />
+        ) : user ? (
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link to="/app/dashboard" className="btn-primary w-full sm:w-auto">
               Go to Dashboard

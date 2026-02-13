@@ -331,12 +331,12 @@ export default function RepoDetailsPage() {
           </div>
           <div>
             <p className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide mb-0.5">Anonymous URL</p>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mt-1">
               <a
                 href={anonUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm bg-slate-50 dark:bg-slate-900 px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-700 break-all text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 font-mono"
+                className="text-sm bg-slate-50 dark:bg-slate-900 px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 break-all text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 font-mono min-w-0 flex-1"
               >
                 {anonUrl}
               </a>
@@ -384,15 +384,15 @@ export default function RepoDetailsPage() {
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2.5 pt-4 border-t border-slate-200 dark:border-slate-700">
+        <div className="flex flex-col gap-2.5 pt-4 border-t border-slate-200 dark:border-slate-700 sm:flex-row sm:flex-wrap sm:items-center">
           {repo.status === 'deleted' ? (
-            <div className="flex items-center gap-2.5">
-              <button onClick={handleRestore} className="btn-secondary text-sm">
+            <div className="flex items-center gap-2.5 w-full sm:w-auto">
+              <button onClick={handleRestore} className="btn-secondary text-sm flex-1 sm:flex-initial">
                 Restore
               </button>
               <button
                 onClick={() => setShowPermanentDeleteConfirm(true)}
-                className="btn-danger text-sm ml-auto"
+                className="btn-danger text-sm flex-1 sm:flex-initial"
               >
                 Permanently Delete
               </button>
@@ -406,9 +406,9 @@ export default function RepoDetailsPage() {
                   onChange={(e) => setExtendDays(Number(e.target.value))}
                   min={1}
                   max={365}
-                  className="w-20 px-2 py-1.5 text-sm border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                  className="w-16 sm:w-20 px-2 py-1.5 text-sm border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
                 />
-                <button onClick={handleExtend} className="btn-secondary text-sm">
+                <button onClick={handleExtend} className="btn-secondary text-sm flex-1 sm:flex-initial">
                   Set Expiry
                 </button>
               </div>
@@ -417,13 +417,13 @@ export default function RepoDetailsPage() {
                   href={anonUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn-secondary text-sm"
+                  className="btn-secondary text-sm flex-1 sm:flex-initial"
                 >
                   Preview
                 </a>
                 <button
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="btn-danger text-sm"
+                  className="btn-danger text-sm flex-1 sm:flex-initial"
                 >
                   Delete
                 </button>
