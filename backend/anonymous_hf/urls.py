@@ -8,5 +8,5 @@ urlpatterns = [
     path("accounts/huggingface/", include("core.oauth_urls")),
     path("api/", include("core.urls")),
     path("api/", include("anonymizer.urls")),
-    path("", include("anonymizer.proxy_urls")),
+    path("api/", include("anonymizer.proxy_urls")),
 ]

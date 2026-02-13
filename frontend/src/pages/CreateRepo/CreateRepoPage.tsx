@@ -41,7 +41,7 @@ function SuccessView({ result, initialColabUrl, apiCall }: SuccessViewProps) {
   const [colabError, setColabError] = useState<string | null>(null)
 
   const anonUrl = `${window.location.origin}/a/${result.anonymous_id}/`
-  const downloadUrl = `${window.location.origin}/a/${result.anonymous_id}/download/`
+  const downloadUrl = `${window.location.origin}/api/a/${result.anonymous_id}/download/`
   const quickStartCode = result.repo_type === 'dataset'
     ? `# Download the repository\n!wget "${downloadUrl}" -O repo.zip\n!unzip repo.zip -d anonymous_repo\n\n# Load the dataset\nfrom datasets import load_from_disk\ndataset = load_from_disk("anonymous_repo")`
     : `# Download the repository\n!wget "${downloadUrl}" -O repo.zip\n!unzip repo.zip -d anonymous_repo\n\n# Load the model\nfrom transformers import AutoModel, AutoTokenizer\nmodel = AutoModel.from_pretrained("anonymous_repo")\ntokenizer = AutoTokenizer.from_pretrained("anonymous_repo")`

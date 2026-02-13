@@ -315,7 +315,7 @@ function MetadataBadge({ label, values, color }: { label: string; values: string
 // --- Quick Start code generation ---
 
 function getQuickStartCode(anonymousId: string, repoType: string): string {
-  const downloadUrl = `${window.location.origin}/a/${anonymousId}/download/`
+  const downloadUrl = `${window.location.origin}/api/a/${anonymousId}/download/`
 
   if (repoType === 'dataset') {
     return `# Download the repository
@@ -400,7 +400,7 @@ export default function PublicViewerPage() {
     const fetchInfo = async () => {
       try {
         const res = await axios.get<RepoInfo>(
-          `${API_BASE}/a/${anonymousId}/info/`
+          `${API_BASE}/api/a/${anonymousId}/info/`
         )
         setRepoInfo(res.data)
       } catch {
@@ -418,8 +418,8 @@ export default function PublicViewerPage() {
       try {
         if (isDirectory) {
           const treePath = currentPath
-            ? `${API_BASE}/a/${anonymousId}/tree/${currentPath}`
-            : `${API_BASE}/a/${anonymousId}/tree/`
+            ? `${API_BASE}/api/a/${anonymousId}/tree/${currentPath}`
+            : `${API_BASE}/api/a/${anonymousId}/tree/`
           const res = await axios.get<TreeEntry[]>(treePath)
           setTree(res.data)
           setFileContent(null)
@@ -433,7 +433,7 @@ export default function PublicViewerPage() {
             if (readmeEntry) {
               try {
                 const readmeRes = await axios.get(
-                  `${API_BASE}/a/${anonymousId}/resolve/${readmeEntry.path}`,
+                  `${API_BASE}/api/a/${anonymousId}/resolve/${readmeEntry.path}`,
                   { responseType: 'text', transformResponse: [(data: string) => data] }
                 )
                 setReadmeContent(readmeRes.data)
@@ -444,7 +444,7 @@ export default function PublicViewerPage() {
           }
         } else {
           const res = await axios.get(
-            `${API_BASE}/a/${anonymousId}/resolve/${currentPath}`,
+            `${API_BASE}/api/a/${anonymousId}/resolve/${currentPath}`,
             { responseType: 'text', transformResponse: [(data: string) => data] }
           )
           setFileContent(res.data)
@@ -662,7 +662,7 @@ export default function PublicViewerPage() {
             {repoInfo?.allow_download && (
               <>
                 <a
-                  href={`${API_BASE}/a/${anonymousId}/download/`}
+                  href={`${API_BASE}/api/a/${anonymousId}/download/`}
                   className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors"
                   title="Download ZIP"
                 >
@@ -934,7 +934,7 @@ export default function PublicViewerPage() {
                 {currentPath.split('/').pop()}
               </span>
               <a
-                href={`${API_BASE}/a/${anonymousId}/resolve/${currentPath}`}
+                href={`${API_BASE}/api/a/${anonymousId}/resolve/${currentPath}`}
                 download
                 className="text-xs text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 font-medium"
               >

@@ -33,7 +33,7 @@ class TestProxyFileView:
             content_type="text/markdown",
         )
 
-        resp = client.get(f"/a/{active_repo.anonymous_id}/resolve/README.md")
+        resp = client.get(f"/api/a/{active_repo.anonymous_id}/resolve/README.md")
         assert resp.status_code == 200
         assert b"# Hello World" in b"".join(resp.streaming_content)
 
@@ -47,12 +47,12 @@ class TestProxyFileView:
             content_type="text/csv",
         )
 
-        resp = client.get(f"/a/{active_repo.anonymous_id}/resolve/data.csv")
+        resp = client.get(f"/api/a/{active_repo.anonymous_id}/resolve/data.csv")
         assert resp.status_code == 200
         assert resp["Content-Type"] == "text/csv"
 
     def test_proxy_file_not_found_repo(self, client):
-        resp = client.get("/a/nonexistent12/resolve/README.md")
+        resp = client.get("/api/a/nonexistent12/resolve/README.md")
         assert resp.status_code == 404
 
     @responses.activate
@@ -63,7 +63,7 @@ class TestProxyFileView:
             status=404,
         )
 
-        resp = client.get(f"/a/{active_repo.anonymous_id}/resolve/missing.txt")
+        resp = client.get(f"/api/a/{active_repo.anonymous_id}/resolve/missing.txt")
         assert resp.status_code == 404
 
     @responses.activate
@@ -74,19 +74,19 @@ class TestProxyFileView:
             status=403,
         )
 
-        resp = client.get(f"/a/{active_repo.anonymous_id}/resolve/secret.txt")
+        resp = client.get(f"/api/a/{active_repo.anonymous_id}/resolve/secret.txt")
         assert resp.status_code == 403
 
     def test_proxy_expired_repo(self, client):
         repo = AnonymousRepoFactory(
             expires_at=timezone.now() - timezone.timedelta(days=1),
         )
-        resp = client.get(f"/a/{repo.anonymous_id}/resolve/README.md")
+        resp = client.get(f"/api/a/{repo.anonymous_id}/resolve/README.md")
         assert resp.status_code == 404
 
     def test_proxy_deleted_repo(self, client):
         repo = AnonymousRepoFactory(status="deleted")
-        resp = client.get(f"/a/{repo.anonymous_id}/resolve/README.md")
+        resp = client.get(f"/api/a/{repo.anonymous_id}/resolve/README.md")
         assert resp.status_code == 404
 
     @responses.activate
@@ -98,7 +98,7 @@ class TestProxyFileView:
             status=200,
         )
 
-        client.get(f"/a/{active_repo.anonymous_id}/resolve/README.md")
+        client.get(f"/api/a/{active_repo.anonymous_id}/resolve/README.md")
         active_repo.refresh_from_db()
         assert active_repo.access_count == 1
         assert active_repo.view_count == 1
@@ -112,7 +112,7 @@ class TestProxyFileView:
             status=200,
         )
 
-        client.get(f"/a/{active_repo.anonymous_id}/resolve/README.md")
+        client.get(f"/api/a/{active_repo.anonymous_id}/resolve/README.md")
         assert active_repo.activity_logs.filter(action="viewed").count() == 1
 
     @responses.activate
@@ -130,7 +130,7 @@ class TestProxyFileView:
             status=200,
         )
 
-        resp = client.get(f"/a/{active_repo.anonymous_id}/resolve/README.md")
+        resp = client.get(f"/api/a/{active_repo.anonymous_id}/resolve/README.md")
         assert resp.status_code == 200
 
 
@@ -149,7 +149,7 @@ class TestProxyTreeView:
             status=200,
         )
 
-        resp = client.get(f"/a/{active_repo.anonymous_id}/tree/")
+        resp = client.get(f"/api/a/{active_repo.anonymous_id}/tree/")
         assert resp.status_code == 200
         data = resp.json()
         assert len(data) == 2
@@ -164,7 +164,7 @@ class TestProxyTreeView:
             status=200,
         )
 
-        resp = client.get(f"/a/{active_repo.anonymous_id}/tree/data")
+        resp = client.get(f"/api/a/{active_repo.anonymous_id}/tree/data")
         assert resp.status_code == 200
 
     @responses.activate
@@ -175,14 +175,14 @@ class TestProxyTreeView:
             status=404,
         )
 
-        resp = client.get(f"/a/{active_repo.anonymous_id}/tree/nonexistent")
+        resp = client.get(f"/api/a/{active_repo.anonymous_id}/tree/nonexistent")
         assert resp.status_code == 404
 
 
 @pytest.mark.django_db
 class TestProxyInfoView:
     def test_info_returns_metadata(self, client, active_repo):
-        resp = client.get(f"/a/{active_repo.anonymous_id}/info/")
+        resp = client.get(f"/api/a/{active_repo.anonymous_id}/info/")
         assert resp.status_code == 200
         data = resp.json()
         assert data["anonymous_id"] == active_repo.anonymous_id
@@ -191,7 +191,7 @@ class TestProxyInfoView:
         assert data["allow_download"] is True
 
     def test_info_not_found(self, client):
-        resp = client.get("/a/nonexistent12/info/")
+        resp = client.get("/api/a/nonexistent12/info/")
         assert resp.status_code == 404
 
 
@@ -214,7 +214,7 @@ class TestProxyDownloadView:
             status=200,
         )
 
-        resp = client.get(f"/a/{active_repo.anonymous_id}/download/")
+        resp = client.get(f"/api/a/{active_repo.anonymous_id}/download/")
         assert resp.status_code == 200
         assert resp["Content-Type"] == "application/zip"
         assert "attachment" in resp["Content-Disposition"]
@@ -225,7 +225,7 @@ class TestProxyDownloadView:
             allow_download=False,
             expires_at=timezone.now() + timezone.timedelta(days=30),
         )
-        resp = client.get(f"/a/{repo.anonymous_id}/download/")
+        resp = client.get(f"/api/a/{repo.anonymous_id}/download/")
         assert resp.status_code == 403
 
 

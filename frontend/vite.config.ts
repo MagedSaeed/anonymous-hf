@@ -13,17 +13,6 @@ export default defineConfig(() => {
         '/api': backendUrl,
         '/accounts': backendUrl,
         '/admin': backendUrl,
-        '/a': {
-          target: backendUrl,
-          bypass(req) {
-            // Only proxy /a/{id}/info|tree|resolve|download|splits|rows to Django
-            // Everything else (e.g., /a/{id}/) is served by React SPA
-            if (req.url && /\/a\/[^/]+\/(info|tree|resolve|download)(\/|$|\?)/.test(req.url)) {
-              return undefined
-            }
-            return '/index.html'
-          },
-        },
       },
     },
     build: {

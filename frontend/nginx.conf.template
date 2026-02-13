@@ -14,15 +14,16 @@ server {
     # caching the IP at config-load time.
     set $backend http://${BACKEND_URL};
 
-    # API and auth routes -> backend
+    # API routes -> backend (includes proxy streaming endpoints)
     location /api/ {
         proxy_pass $backend;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto https;
-        proxy_read_timeout 120s;
+        proxy_read_timeout 300s;
         proxy_connect_timeout 10s;
+        proxy_buffering off;
     }
 
     location /accounts/ {
@@ -41,18 +42,6 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto https;
         proxy_connect_timeout 10s;
-    }
-
-    # Proxy requests -> backend (streaming support)
-    location /a/ {
-        proxy_pass $backend;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto https;
-        proxy_read_timeout 300s;
-        proxy_connect_timeout 10s;
-        proxy_buffering off;
     }
 
     # Django static files (admin, DRF) -> backend (served by whitenoise)
