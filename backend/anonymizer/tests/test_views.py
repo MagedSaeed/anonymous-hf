@@ -153,51 +153,6 @@ class TestRepoDetailView:
 
 
 @pytest.mark.django_db
-class TestRepoExpireView:
-    def test_expire_repo(self, authenticated_client, repo):
-        resp = authenticated_client.post(f"/api/repos/{repo.pk}/expire/")
-        assert resp.status_code == 200
-        data = resp.json()
-        assert data["status"] == "expired"
-        assert data["is_expired"] is True
-        repo.refresh_from_db()
-        assert repo.status == "expired"
-        assert repo.expires_at <= timezone.now()
-
-    def test_expire_creates_activity_log(self, authenticated_client, repo):
-        authenticated_client.post(f"/api/repos/{repo.pk}/expire/")
-        from anonymizer.models import ActivityLog
-
-        log = ActivityLog.objects.filter(
-            anonymous_repo=repo, action="manually_expired"
-        ).first()
-        assert log is not None
-        assert log.actor_type == "owner"
-
-    def test_expire_requires_auth(self, repo):
-        client = Client()
-        resp = client.post(f"/api/repos/{repo.pk}/expire/")
-        assert resp.status_code == 403
-
-    def test_expire_only_owner(self, repo):
-        other_user = UserFactory()
-        client = Client()
-        client.force_login(other_user)
-        resp = client.post(f"/api/repos/{repo.pk}/expire/")
-        assert resp.status_code == 404
-
-    def test_expire_already_expired_repo(self, authenticated_client, user):
-        repo = AnonymousRepoFactory(owner=user, status="expired")
-        resp = authenticated_client.post(f"/api/repos/{repo.pk}/expire/")
-        assert resp.status_code == 400
-
-    def test_expire_deleted_repo(self, authenticated_client, user):
-        repo = AnonymousRepoFactory(owner=user, status="deleted")
-        resp = authenticated_client.post(f"/api/repos/{repo.pk}/expire/")
-        assert resp.status_code == 400
-
-
-@pytest.mark.django_db
 class TestActivityLogListView:
     def test_list_activity(self, authenticated_client, repo):
         ActivityLogFactory(anonymous_repo=repo, action="viewed")

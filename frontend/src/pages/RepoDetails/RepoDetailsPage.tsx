@@ -64,7 +64,6 @@ export default function RepoDetailsPage() {
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showPermanentDeleteConfirm, setShowPermanentDeleteConfirm] = useState(false)
-  const [showExpireConfirm, setShowExpireConfirm] = useState(false)
   const [extendDays, setExtendDays] = useState(30)
   const [editBranch, setEditBranch] = useState('')
   const [savingBranch, setSavingBranch] = useState(false)
@@ -162,16 +161,6 @@ export default function RepoDetailsPage() {
       setRepo(res.data)
     } catch (err) {
       showError('Failed to restore repository', err)
-    }
-  }
-
-  const handleExpire = async () => {
-    try {
-      const res = await apiCall<AnonymousRepo>('POST', `/api/repos/${id}/expire/`)
-      setRepo(res.data)
-      setShowExpireConfirm(false)
-    } catch (err) {
-      showError('Failed to expire repository', err)
     }
   }
 
@@ -436,12 +425,6 @@ export default function RepoDetailsPage() {
                   Preview
                 </a>
                 <button
-                  onClick={() => setShowExpireConfirm(true)}
-                  className="btn-danger text-sm flex-1 sm:flex-initial"
-                >
-                  Expire Now
-                </button>
-                <button
                   onClick={() => setShowDeleteConfirm(true)}
                   className="btn-danger text-sm flex-1 sm:flex-initial"
                 >
@@ -517,7 +500,6 @@ export default function RepoDetailsPage() {
                             log.action === 'viewed' ? 'bg-blue-400' :
                             log.action === 'downloaded' ? 'bg-green-400' :
                             log.action === 'extended' ? 'bg-amber-400' :
-                            log.action === 'manually_expired' ? 'bg-orange-400' :
                             log.action === 'deleted' ? 'bg-red-400' :
                             log.action === 'restored' ? 'bg-emerald-400' : 'bg-slate-300'
                           }`} />
@@ -579,17 +561,6 @@ export default function RepoDetailsPage() {
           danger
           onConfirm={handleDelete}
           onCancel={() => setShowDeleteConfirm(false)}
-        />
-      )}
-
-      {showExpireConfirm && (
-        <ConfirmDialog
-          title="Expire Repository"
-          message="This will immediately expire the anonymous URL. Reviewers will no longer be able to access the repository contents and the original identity will be revealed. You can extend the expiry later to reactivate it."
-          confirmLabel="Expire Now"
-          danger
-          onConfirm={handleExpire}
-          onCancel={() => setShowExpireConfirm(false)}
         />
       )}
 

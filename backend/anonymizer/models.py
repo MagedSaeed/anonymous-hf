@@ -62,11 +62,6 @@ class AnonymousRepo(models.Model):
             return True
         return False
 
-    def expire(self):
-        self.status = "expired"
-        self.expires_at = timezone.now()
-        self.save(update_fields=["status", "expires_at"])
-
     def extend_expiry(self, days):
         self.expires_at = timezone.now() + timezone.timedelta(days=days)
         self.status = "active"
@@ -97,7 +92,6 @@ class ActivityLog(models.Model):
         ("viewed", "Viewed"),
         ("downloaded", "Downloaded"),
         ("extended", "Extended"),
-        ("manually_expired", "Manually Expired"),
         ("deleted", "Deleted"),
         ("restored", "Restored"),
     ]

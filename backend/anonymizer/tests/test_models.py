@@ -50,16 +50,6 @@ class TestAnonymousRepo:
         assert repo.status == "active"
         assert repo.expires_at > timezone.now()
 
-    def test_expire(self):
-        repo = AnonymousRepoFactory(
-            status="active",
-            expires_at=timezone.now() + timezone.timedelta(days=30),
-        )
-        repo.expire()
-        repo.refresh_from_db()
-        assert repo.status == "expired"
-        assert repo.expires_at <= timezone.now()
-
     def test_auto_set_expires_at(self):
         repo = AnonymousRepo(
             owner=AnonymousRepoFactory().owner,
