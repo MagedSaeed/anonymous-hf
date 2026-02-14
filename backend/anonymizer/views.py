@@ -98,6 +98,31 @@ class RepoDetailView(generics.RetrieveUpdateDestroyAPIView):
             )
 
 
+class RepoExpireView(APIView):
+    """Manually expire a repo immediately."""
+
+    permission_classes = [IsAuthenticated, IsOwner]
+
+    def post(self, request, pk):
+        try:
+            repo = AnonymousRepo.objects.get(pk=pk, owner=request.user)
+        except AnonymousRepo.DoesNotExist:
+            return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if repo.status != "active":
+            return Response(
+                {"error": f"Cannot expire a repo with status '{repo.status}'"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        repo.expire()
+        ActivityLog.objects.create(
+            anonymous_repo=repo, action="manually_expired", actor_type="owner"
+        )
+        serializer = AnonymousRepoSerializer(repo)
+        return Response(serializer.data)
+
+
 class RepoSyncLatestView(APIView):
     """Update the repo's revision to the latest commit on its current branch."""
 
