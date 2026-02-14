@@ -398,7 +398,7 @@ export default function RepoDetailsPage() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2.5 pt-4 border-t border-slate-200 dark:border-slate-700 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="flex flex-col gap-2.5 pt-4 border-t border-slate-200 dark:border-slate-700">
           {repo.status === 'deleted' ? (
             <div className="flex items-center gap-2.5 w-full sm:w-auto">
               <button onClick={handleRestore} className="btn-secondary text-sm flex-1 sm:flex-initial">
@@ -411,9 +411,41 @@ export default function RepoDetailsPage() {
                 Permanently Delete
               </button>
             </div>
-          ) : (
+          ) : repo.status === 'expired' ? (
             <>
               <div className="flex items-center gap-1.5">
+                <input
+                  type="number"
+                  value={extendDays}
+                  onChange={(e) => setExtendDays(Number(e.target.value))}
+                  min={1}
+                  max={365}
+                  className="w-16 sm:w-20 px-2 py-1.5 text-sm border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                />
+                <button onClick={handleExtend} className="btn-secondary text-sm flex-1 sm:flex-initial">
+                  Reactivate
+                </button>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <a
+                  href={anonUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-secondary text-sm flex-1 sm:flex-initial"
+                >
+                  Preview
+                </a>
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="btn-danger text-sm flex-1 sm:flex-initial sm:ml-auto"
+                >
+                  Delete
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-1.5 sm:flex-row">
                 <input
                   type="number"
                   value={extendDays}
@@ -426,7 +458,7 @@ export default function RepoDetailsPage() {
                   Set Expiry
                 </button>
               </div>
-              <div className="flex items-center gap-2.5 sm:ml-auto">
+              <div className="flex flex-wrap items-center gap-2.5">
                 <a
                   href={anonUrl}
                   target="_blank"
@@ -437,7 +469,7 @@ export default function RepoDetailsPage() {
                 </a>
                 <button
                   onClick={() => setShowExpireConfirm(true)}
-                  className="btn-danger text-sm flex-1 sm:flex-initial"
+                  className="btn-danger text-sm flex-1 sm:flex-initial sm:ml-auto"
                 >
                   Expire Now
                 </button>
