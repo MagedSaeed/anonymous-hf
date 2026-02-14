@@ -77,12 +77,24 @@ class TestProxyFileView:
         resp = client.get(f"/api/a/{active_repo.anonymous_id}/resolve/secret.txt")
         assert resp.status_code == 403
 
-    def test_proxy_expired_repo(self, client):
+    @responses.activate
+    def test_proxy_expired_repo_still_accessible(self, client):
         repo = AnonymousRepoFactory(
+            original_url="https://huggingface.co/datasets/testuser/testrepo",
+            repo_type="dataset",
+            branch="main",
             expires_at=timezone.now() - timezone.timedelta(days=1),
         )
+        responses.add(
+            responses.GET,
+            "https://huggingface.co/datasets/testuser/testrepo/resolve/main/README.md",
+            body=b"# Expired but visible",
+            status=200,
+            content_type="text/markdown",
+        )
         resp = client.get(f"/api/a/{repo.anonymous_id}/resolve/README.md")
-        assert resp.status_code == 404
+        assert resp.status_code == 200
+        assert b"Expired but visible" in b"".join(resp.streaming_content)
 
     def test_proxy_deleted_repo(self, client):
         repo = AnonymousRepoFactory(status="deleted")

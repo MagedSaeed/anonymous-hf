@@ -69,9 +69,12 @@ class RepoDetailView(generics.RetrieveUpdateDestroyAPIView):
         # Allow extending expiry via expiry_days parameter
         expiry_days = self.request.data.get("expiry_days")
         if expiry_days:
-            instance = serializer.save(
-                expires_at=timezone.now() + timezone.timedelta(days=int(expiry_days))
-            )
+            new_expiry = timezone.now() + timezone.timedelta(days=int(expiry_days))
+            # Reactivate expired repos when expiry is extended
+            extra = {"expires_at": new_expiry}
+            if old_status == "expired":
+                extra["status"] = "active"
+            instance = serializer.save(**extra)
         else:
             instance = serializer.save()
         # Log the extension

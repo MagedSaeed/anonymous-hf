@@ -17,14 +17,18 @@ PROXY_HEADERS = ["Content-Type", "Content-Length", "Content-Disposition", "ETag"
 
 
 def get_repo_or_404(anonymous_id):
-    """Look up an active anonymous repo or raise 404."""
+    """Look up an anonymous repo or raise 404.
+
+    Expired repos are still accessible (content remains viewable, but
+    identity is revealed via the /info endpoint).  Only deleted repos 404.
+    """
     try:
         repo = AnonymousRepo.objects.select_related("owner").get(anonymous_id=anonymous_id)
     except AnonymousRepo.DoesNotExist:
         raise Http404("Anonymous repository not found")
 
-    if repo.is_expired():
-        raise Http404("This anonymous repository has expired")
+    # Trigger status update if the expiry time has passed
+    repo.is_expired()
 
     if repo.status == "deleted":
         raise Http404("This anonymous repository has been deleted")

@@ -108,13 +108,6 @@ function parseError(status?: number, body?: string): ErrorInfo {
   const bodyStr = typeof body === 'string' ? body.toLowerCase() : ''
 
   if (status === 404) {
-    if (bodyStr.includes('expired')) {
-      return {
-        title: 'Repository Expired',
-        description:
-          'This anonymous repository link has expired and is no longer accessible.',
-      }
-    }
     if (bodyStr.includes('deleted')) {
       return {
         title: 'Repository Deleted',
@@ -507,27 +500,6 @@ export default function PublicViewerPage() {
             {error.title}
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">{error.description}</p>
-          {repoInfo?.identity_revealed && repoInfo.original_url && (
-            <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-6 text-left">
-              <p className="text-xs font-medium text-amber-600 dark:text-amber-400 uppercase tracking-wide mb-2">
-                Identity Revealed
-              </p>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
-                The review period has ended. The original repository is:
-              </p>
-              <a
-                href={repoInfo.original_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 bg-white dark:bg-slate-900 px-3 py-2 rounded-md border border-amber-200 dark:border-amber-700 break-all transition-colors"
-              >
-                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-                {repoInfo.original_url}
-              </a>
-            </div>
-          )}
           {error.tips && error.tips.length > 0 && (
             <div className="text-left bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 mb-6">
               <p className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide mb-2.5">
@@ -711,6 +683,31 @@ export default function PublicViewerPage() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6">
+        {/* Identity revealed banner (expired repo) */}
+        {repoInfo?.identity_revealed && repoInfo.original_url && (
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-4">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium text-amber-600 dark:text-amber-400 uppercase tracking-wide mb-1">
+                Identity Revealed
+              </p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                The review period has ended. This repository is no longer anonymous. The original repository is:
+              </p>
+            </div>
+            <a
+              href={repoInfo.original_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 bg-white dark:bg-slate-900 px-3 py-2 rounded-md border border-amber-200 dark:border-amber-700 break-all transition-colors shrink-0"
+            >
+              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+              {repoInfo.original_url}
+            </a>
+          </div>
+        )}
+
         {/* Arxiv warning banner */}
         {showArxivWarning && (isRootView || isReadmeFile) && (
           <div className="flex items-start gap-2 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-4">

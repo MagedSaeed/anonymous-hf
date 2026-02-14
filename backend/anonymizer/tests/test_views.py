@@ -145,6 +145,22 @@ class TestRepoDetailView:
         repo.refresh_from_db()
         assert repo.expires_at > timezone.now() + timezone.timedelta(days=59)
 
+    def test_patch_repo_reactivate_expired(self, authenticated_client, user):
+        expired_repo = AnonymousRepoFactory(
+            owner=user,
+            status="expired",
+            expires_at=timezone.now() - timezone.timedelta(days=1),
+        )
+        resp = authenticated_client.patch(
+            f"/api/repos/{expired_repo.pk}/",
+            data={"expiry_days": 30},
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+        expired_repo.refresh_from_db()
+        assert expired_repo.status == "active"
+        assert expired_repo.expires_at > timezone.now() + timezone.timedelta(days=29)
+
     def test_delete_repo_soft_deletes(self, authenticated_client, repo):
         resp = authenticated_client.delete(f"/api/repos/{repo.pk}/")
         assert resp.status_code == 204
