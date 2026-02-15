@@ -413,55 +413,61 @@ export default function RepoDetailsPage() {
               </div>
             </>
           ) : repo.status === 'expired' ? (
-            <div className="flex items-center gap-1.5">
-              <input
-                type="number"
-                value={extendDays}
-                onChange={(e) => setExtendDays(Number(e.target.value))}
-                min={1}
-                max={365}
-                className="w-16 sm:w-20 px-2 py-1.5 text-sm border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
-              />
-              <button onClick={handleExtend} className="btn-secondary text-sm whitespace-nowrap">
-                Reactivate
-              </button>
-              <a
-                href={anonUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-secondary text-sm"
-              >
-                Preview
-              </a>
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="btn-danger text-sm ml-auto"
-              >
-                Delete
-              </button>
+            <div className="space-y-2">
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="number"
+                  value={extendDays}
+                  onChange={(e) => setExtendDays(Number(e.target.value))}
+                  min={1}
+                  max={365}
+                  className="w-16 sm:w-20 px-2 py-1.5 text-sm border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                />
+                <button onClick={handleExtend} className="btn-secondary text-sm whitespace-nowrap">
+                  Reactivate
+                </button>
+                <a
+                  href={anonUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-secondary text-sm"
+                >
+                  Preview
+                </a>
+              </div>
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="btn-danger text-sm"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           ) : (
-            <div className="flex items-center gap-1.5">
-              <input
-                type="number"
-                value={extendDays}
-                onChange={(e) => setExtendDays(Number(e.target.value))}
-                min={1}
-                max={365}
-                className="w-16 sm:w-20 px-2 py-1.5 text-sm border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
-              />
-              <button onClick={handleExtend} className="btn-secondary text-sm whitespace-nowrap">
-                Set Expiry
-              </button>
-              <a
-                href={anonUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-secondary text-sm"
-              >
-                Preview
-              </a>
-              <div className="flex items-center gap-1.5 ml-auto">
+            <div className="space-y-2">
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="number"
+                  value={extendDays}
+                  onChange={(e) => setExtendDays(Number(e.target.value))}
+                  min={1}
+                  max={365}
+                  className="w-16 sm:w-20 px-2 py-1.5 text-sm border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                />
+                <button onClick={handleExtend} className="btn-secondary text-sm whitespace-nowrap">
+                  Set Expiry
+                </button>
+                <a
+                  href={anonUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-secondary text-sm"
+                >
+                  Preview
+                </a>
+              </div>
+              <div className="flex justify-end gap-1.5">
                 <button
                   onClick={() => setShowExpireConfirm(true)}
                   className="btn-danger text-sm"
