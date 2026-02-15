@@ -3,6 +3,7 @@ import responses
 from django.test import Client
 from django.utils import timezone
 
+from anonymizer.proxy_views import get_hf_token
 from anonymizer.tests.factories import AnonymousRepoFactory
 
 
@@ -19,6 +20,30 @@ def active_repo():
 @pytest.fixture
 def client():
     return Client()
+
+
+@pytest.mark.django_db
+class TestGetHfToken:
+    def test_prefers_api_token_over_oauth(self):
+        repo = AnonymousRepoFactory(
+            owner__hf_api_token="hf_api_long_lived",
+            owner__hf_access_token="hf_oauth_short_lived",
+        )
+        assert get_hf_token(repo) == "hf_api_long_lived"
+
+    def test_falls_back_to_oauth_token(self):
+        repo = AnonymousRepoFactory(
+            owner__hf_api_token="",
+            owner__hf_access_token="hf_oauth_token",
+        )
+        assert get_hf_token(repo) == "hf_oauth_token"
+
+    def test_returns_none_when_no_tokens(self):
+        repo = AnonymousRepoFactory(
+            owner__hf_api_token="",
+            owner__hf_access_token="",
+        )
+        assert get_hf_token(repo) is None
 
 
 @pytest.mark.django_db

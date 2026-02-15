@@ -136,7 +136,7 @@ class RepoSyncLatestView(APIView):
         except AnonymousRepo.DoesNotExist:
             return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        token = repo.owner.hf_access_token
+        token = repo.owner.hf_api_token or repo.owner.hf_access_token
         repo_id = repo.get_hf_repo_id()
         if not repo_id:
             return Response(
@@ -187,9 +187,16 @@ class HFRepoListView(APIView):
 
     def get(self, request):
         user = request.user
-        if not user.hf_username or not user.hf_access_token:
+        if not user.hf_username:
             return Response(
-                {"error": "HuggingFace account not linked or token missing"},
+                {"error": "HuggingFace account not linked"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        token = user.hf_api_token or user.hf_access_token
+        if not token:
+            return Response(
+                {"error": "No HuggingFace token available. Please add an API token in Settings."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -205,7 +212,7 @@ class HFRepoListView(APIView):
             if age < 300:
                 return Response(cached)
 
-        repos = list_user_repos(user.hf_username, user.hf_access_token)
+        repos = list_user_repos(user.hf_username, token)
         request.session[cache_key] = repos
         request.session[cache_ts_key] = timezone.now().isoformat()
         return Response(repos)

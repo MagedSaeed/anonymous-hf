@@ -64,6 +64,46 @@ class TestProfileView:
         user.refresh_from_db()
         assert user.default_expiry_days == 30
 
+    def test_profile_returns_has_hf_token_false_by_default(self):
+        user = UserFactory()
+        client = Client()
+        client.force_login(user)
+        response = client.get(reverse("profile"))
+        assert response.status_code == 200
+        data = response.json()
+        assert data["has_hf_token"] is False
+        assert "hf_api_token" not in data
+
+    def test_profile_patch_sets_hf_api_token(self):
+        user = UserFactory()
+        client = Client()
+        client.force_login(user)
+        response = client.patch(
+            reverse("profile"),
+            data={"hf_api_token": "hf_test_token_123"},
+            content_type="application/json",
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["has_hf_token"] is True
+        assert "hf_api_token" not in data
+        user.refresh_from_db()
+        assert user.hf_api_token == "hf_test_token_123"
+
+    def test_profile_patch_clears_hf_api_token(self):
+        user = UserFactory(hf_api_token="hf_existing_token")
+        client = Client()
+        client.force_login(user)
+        response = client.patch(
+            reverse("profile"),
+            data={"hf_api_token": ""},
+            content_type="application/json",
+        )
+        assert response.status_code == 200
+        assert response.json()["has_hf_token"] is False
+        user.refresh_from_db()
+        assert user.hf_api_token == ""
+
     def test_profile_patch_cannot_change_readonly_fields(self):
         user = UserFactory()
         client = Client()

@@ -1,5 +1,5 @@
-import { useAuth } from '../../contexts/AuthContext'
 import { Link } from 'react-router-dom'
+import { useAuth } from '../../contexts/AuthContext'
 
 export default function HomePage() {
   const { user, loading } = useAuth()
@@ -23,13 +23,44 @@ export default function HomePage() {
         {loading ? (
           <div className="h-11 w-52 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse mx-auto" />
         ) : user ? (
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link to="/app/dashboard" className="btn-primary w-full sm:w-auto">
-              Go to Dashboard
-            </Link>
-            <Link to="/app/create" className="btn-secondary w-full sm:w-auto">
-              Create Anonymous Repo
-            </Link>
+          <div className="space-y-4">
+            {!user.has_hf_token && (
+              <div className="bg-amber-50 border border-amber-200 dark:bg-amber-950 dark:border-amber-800 rounded-lg p-3 sm:p-4 max-w-lg mx-auto text-left">
+                <div className="flex items-start gap-2.5">
+                  <svg
+                    className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 mt-0.5 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"
+                    />
+                  </svg>
+                  <p className="text-xs text-amber-700 dark:text-amber-400">
+                    Add a HuggingFace API token in{' '}
+                    <Link
+                      to="/app/settings"
+                      className="underline font-medium hover:text-amber-900 dark:hover:text-amber-200"
+                    >
+                      Settings
+                    </Link>{' '}
+                    so the proxy can access your repositories for reviewers.
+                  </p>
+                </div>
+              </div>
+            )}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Link to="/app/dashboard" className="btn-primary w-full sm:w-auto">
+                Go to Dashboard
+              </Link>
+              <Link to="/app/create" className="btn-secondary w-full sm:w-auto">
+                Create Anonymous Repo
+              </Link>
+            </div>
           </div>
         ) : (
           <a

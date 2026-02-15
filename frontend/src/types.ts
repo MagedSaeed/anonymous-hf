@@ -7,6 +7,7 @@ export interface User {
   avatar_url: string
   default_expiry_days: number
   date_joined: string
+  has_hf_token: boolean
 }
 
 export interface AnonymousRepo {

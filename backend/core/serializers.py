@@ -4,6 +4,9 @@ from .models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
+    has_hf_token = serializers.SerializerMethodField()
+    hf_api_token = serializers.CharField(write_only=True, required=False, allow_blank=True)
+
     class Meta:
         model = User
         fields = [
@@ -15,6 +18,8 @@ class UserSerializer(serializers.ModelSerializer):
             "avatar_url",
             "default_expiry_days",
             "date_joined",
+            "has_hf_token",
+            "hf_api_token",
         ]
         read_only_fields = [
             "id",
@@ -25,3 +30,6 @@ class UserSerializer(serializers.ModelSerializer):
             "avatar_url",
             "date_joined",
         ]
+
+    def get_has_hf_token(self, obj):
+        return bool(obj.hf_api_token)

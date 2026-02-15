@@ -2,7 +2,6 @@ import io
 import zipfile
 
 import requests as http_requests
-from django.conf import settings
 from django.http import Http404, HttpResponse, JsonResponse, StreamingHttpResponse
 from django.views import View
 
@@ -57,13 +56,13 @@ def log_access(repo, action, request):
 def get_hf_token(repo):
     """Get the appropriate HF token for making requests.
 
-    Priority: owner's OAuth token -> platform token from settings.
+    Priority: owner's personal API token -> OAuth token.
     """
     owner = repo.owner
+    if owner.hf_api_token:
+        return owner.hf_api_token
     if owner.hf_access_token:
         return owner.hf_access_token
-    if settings.HUGGINGFACE_TOKEN:
-        return settings.HUGGINGFACE_TOKEN
     return None
 
 

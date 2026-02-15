@@ -141,8 +141,5 @@ HUGGINGFACE_REDIRECT_URI = config(
     default="http://localhost:8000/accounts/huggingface/callback/",
 )
 
-# Platform HuggingFace token (for proxying public repos)
-HUGGINGFACE_TOKEN = config("HUGGINGFACE_TOKEN", default="")
-
 # Site URL
 SITE_URL = config("SITE_URL", default="http://localhost:8000")
