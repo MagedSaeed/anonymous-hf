@@ -17,6 +17,7 @@ export default function SettingsPage() {
   } | null>(null)
   const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'danger'>('profile')
   const [showToken, setShowToken] = useState(false)
+  const [showRemoveTokenConfirm, setShowRemoveTokenConfirm] = useState(false)
 
   const handleSavePreferences = async () => {
     setSaving(true)
@@ -174,7 +175,7 @@ export default function SettingsPage() {
                       </button>
                     </div>
                     <button
-                      onClick={handleRemoveToken}
+                      onClick={() => setShowRemoveTokenConfirm(true)}
                       disabled={tokenSaving}
                       className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium shrink-0"
                     >
@@ -307,6 +308,20 @@ export default function SettingsPage() {
             Delete Account
           </button>
         </div>
+      )}
+
+      {showRemoveTokenConfirm && (
+        <ConfirmDialog
+          title="Remove API Token"
+          message="Without a personal API token, reviewers won't be able to access your repositories through the proxy. Are you sure you want to remove it?"
+          confirmLabel="Remove Token"
+          danger
+          onConfirm={() => {
+            setShowRemoveTokenConfirm(false)
+            handleRemoveToken()
+          }}
+          onCancel={() => setShowRemoveTokenConfirm(false)}
+        />
       )}
 
       {showDeleteConfirm && (
