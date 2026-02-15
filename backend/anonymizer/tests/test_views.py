@@ -167,6 +167,14 @@ class TestRepoDetailView:
         repo.refresh_from_db()
         assert repo.status == "deleted"
 
+    def test_delete_already_deleted_repo_is_noop(self, authenticated_client, user):
+        deleted_repo = AnonymousRepoFactory(owner=user, status="deleted")
+        resp = authenticated_client.delete(f"/api/repos/{deleted_repo.pk}/")
+        assert resp.status_code == 204
+        # Repo should still exist in DB (no hard delete)
+        deleted_repo.refresh_from_db()
+        assert deleted_repo.status == "deleted"
+
 
 @pytest.mark.django_db
 class TestRepoExpireView:

@@ -691,7 +691,7 @@ export default function PublicViewerPage() {
                 Identity Revealed
               </p>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                The review period has ended. This repository is no longer anonymous. The original repository is:
+                This repository is no longer anonymous. The original repository is:
               </p>
             </div>
             <a

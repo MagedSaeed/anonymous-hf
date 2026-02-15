@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import StatusBadge from '../../components/StatusBadge/StatusBadge'
 import CopyButton from '../../components/CopyButton/CopyButton'
@@ -30,7 +30,6 @@ function actorBadge(actorType: string) {
 export default function RepoDetailsPage() {
   const { id } = useParams<{ id: string }>()
   const { apiCall } = useAuth()
-  const navigate = useNavigate()
   const [repo, setRepo] = useState<AnonymousRepo | null>(null)
   const [activities, setActivities] = useState<ActivityLog[]>([])
   const [activityCount, setActivityCount] = useState(0)
@@ -63,7 +62,6 @@ export default function RepoDetailsPage() {
   }, [])
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [showPermanentDeleteConfirm, setShowPermanentDeleteConfirm] = useState(false)
   const [showExpireConfirm, setShowExpireConfirm] = useState(false)
   const [extendDays, setExtendDays] = useState(30)
   const [editBranch, setEditBranch] = useState('')
@@ -142,15 +140,6 @@ export default function RepoDetailsPage() {
       setShowDeleteConfirm(false)
     } catch (err) {
       showError('Failed to delete repository', err)
-    }
-  }
-
-  const handlePermanentDelete = async () => {
-    try {
-      await apiCall('DELETE', `/api/repos/${id}/`)
-      navigate('/app/dashboard')
-    } catch (err) {
-      showError('Failed to permanently delete repository', err)
     }
   }
 
@@ -398,46 +387,58 @@ export default function RepoDetailsPage() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2.5 pt-4 border-t border-slate-200 dark:border-slate-700">
+        <div className="pt-4 border-t border-slate-200 dark:border-slate-700 space-y-3">
           {repo.status === 'deleted' ? (
-            <div className="flex items-center gap-2.5 w-full sm:w-auto">
-              <button onClick={handleRestore} className="btn-secondary text-sm flex-1 sm:flex-initial">
-                Restore
-              </button>
-              <button
-                onClick={() => setShowPermanentDeleteConfirm(true)}
-                className="btn-danger text-sm flex-1 sm:flex-initial"
-              >
-                Permanently Delete
-              </button>
-            </div>
-          ) : repo.status === 'expired' ? (
             <>
-              <div className="flex items-center gap-1.5">
-                <input
-                  type="number"
-                  value={extendDays}
-                  onChange={(e) => setExtendDays(Number(e.target.value))}
-                  min={1}
-                  max={365}
-                  className="w-16 sm:w-20 px-2 py-1.5 text-sm border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
-                />
-                <button onClick={handleExtend} className="btn-secondary text-sm flex-1 sm:flex-initial">
-                  Reactivate
-                </button>
-              </div>
               <div className="flex items-center gap-2.5">
+                <button onClick={handleRestore} className="btn-secondary text-sm">
+                  Restore
+                </button>
                 <a
                   href={anonUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn-secondary text-sm flex-1 sm:flex-initial"
+                  className="btn-secondary text-sm"
+                >
+                  Preview
+                </a>
+              </div>
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                <svg className="w-4 h-4 text-slate-400 dark:text-slate-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Permanent deletion is not available. Deleting a repository permanently would invalidate the anonymous URL with no way to recover it, which could break shared links. You can restore this repository at any time.
+                </p>
+              </div>
+            </>
+          ) : repo.status === 'expired' ? (
+            <>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="number"
+                    value={extendDays}
+                    onChange={(e) => setExtendDays(Number(e.target.value))}
+                    min={1}
+                    max={365}
+                    className="w-16 sm:w-20 px-2 py-1.5 text-sm border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                  />
+                  <button onClick={handleExtend} className="btn-secondary text-sm whitespace-nowrap">
+                    Reactivate
+                  </button>
+                </div>
+                <a
+                  href={anonUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-secondary text-sm"
                 >
                   Preview
                 </a>
                 <button
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="btn-danger text-sm flex-1 sm:flex-initial sm:ml-auto"
+                  className="btn-danger text-sm sm:ml-auto"
                 >
                   Delete
                 </button>
@@ -445,40 +446,42 @@ export default function RepoDetailsPage() {
             </>
           ) : (
             <>
-              <div className="flex items-center gap-1.5 sm:flex-row">
-                <input
-                  type="number"
-                  value={extendDays}
-                  onChange={(e) => setExtendDays(Number(e.target.value))}
-                  min={1}
-                  max={365}
-                  className="w-16 sm:w-20 px-2 py-1.5 text-sm border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
-                />
-                <button onClick={handleExtend} className="btn-secondary text-sm flex-1 sm:flex-initial">
-                  Set Expiry
-                </button>
-              </div>
-              <div className="flex flex-wrap items-center gap-2.5">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="number"
+                    value={extendDays}
+                    onChange={(e) => setExtendDays(Number(e.target.value))}
+                    min={1}
+                    max={365}
+                    className="w-16 sm:w-20 px-2 py-1.5 text-sm border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                  />
+                  <button onClick={handleExtend} className="btn-secondary text-sm whitespace-nowrap">
+                    Set Expiry
+                  </button>
+                </div>
                 <a
                   href={anonUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn-secondary text-sm flex-1 sm:flex-initial"
+                  className="btn-secondary text-sm"
                 >
                   Preview
                 </a>
-                <button
-                  onClick={() => setShowExpireConfirm(true)}
-                  className="btn-danger text-sm flex-1 sm:flex-initial sm:ml-auto"
-                >
-                  Expire Now
-                </button>
-                <button
-                  onClick={() => setShowDeleteConfirm(true)}
-                  className="btn-danger text-sm flex-1 sm:flex-initial"
-                >
-                  Delete
-                </button>
+                <div className="flex items-center gap-2 sm:ml-auto">
+                  <button
+                    onClick={() => setShowExpireConfirm(true)}
+                    className="btn-danger text-sm"
+                  >
+                    Expire Now
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="btn-danger text-sm"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             </>
           )}
@@ -606,7 +609,7 @@ export default function RepoDetailsPage() {
       {showDeleteConfirm && (
         <ConfirmDialog
           title="Delete Repository"
-          message="This will deactivate the anonymous URL. Reviewers will no longer be able to access it. You can restore it later or permanently delete it."
+          message="This will deactivate the anonymous URL. You can restore it later from this page."
           confirmLabel="Delete"
           danger
           onConfirm={handleDelete}
@@ -622,17 +625,6 @@ export default function RepoDetailsPage() {
           danger
           onConfirm={handleExpire}
           onCancel={() => setShowExpireConfirm(false)}
-        />
-      )}
-
-      {showPermanentDeleteConfirm && (
-        <ConfirmDialog
-          title="Permanently Delete Repository"
-          message="This action is irreversible. The repository record and all associated activity logs will be permanently removed. This cannot be undone."
-          confirmLabel="Permanently Delete"
-          danger
-          onConfirm={handlePermanentDelete}
-          onCancel={() => setShowPermanentDeleteConfirm(false)}
         />
       )}
     </div>

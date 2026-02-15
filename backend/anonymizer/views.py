@@ -90,15 +90,14 @@ class RepoDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def perform_destroy(self, instance):
         if instance.status == "deleted":
-            # Already soft-deleted — permanently remove from DB
-            instance.delete()
-        else:
-            # First delete — soft-delete
-            instance.status = "deleted"
-            instance.save(update_fields=["status"])
-            ActivityLog.objects.create(
-                anonymous_repo=instance, action="deleted", actor_type="owner"
-            )
+            # Already soft-deleted — no-op, permanent deletion is not supported
+            return
+        # Soft-delete only
+        instance.status = "deleted"
+        instance.save(update_fields=["status"])
+        ActivityLog.objects.create(
+            anonymous_repo=instance, action="deleted", actor_type="owner"
+        )
 
 
 class RepoExpireView(APIView):
