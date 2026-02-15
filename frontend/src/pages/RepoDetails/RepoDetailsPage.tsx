@@ -29,7 +29,7 @@ function actorBadge(actorType: string) {
 
 export default function RepoDetailsPage() {
   const { id } = useParams<{ id: string }>()
-  const { apiCall } = useAuth()
+  const { apiCall, user } = useAuth()
   const [repo, setRepo] = useState<AnonymousRepo | null>(null)
   const [activities, setActivities] = useState<ActivityLog[]>([])
   const [activityCount, setActivityCount] = useState(0)
@@ -268,6 +268,41 @@ export default function RepoDetailsPage() {
         </div>
       )}
 
+      {user && !user.has_hf_token && (
+        <div className="bg-amber-50 border border-amber-200 dark:bg-amber-950 dark:border-amber-800 rounded-lg p-3 sm:p-4 mb-5">
+          <div className="flex items-start gap-2.5 sm:gap-3">
+            <svg
+              className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 mt-0.5 shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"
+              />
+            </svg>
+            <div>
+              <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
+                HuggingFace API token not configured
+              </p>
+              <p className="text-xs text-amber-700 dark:text-amber-400 mt-1 leading-relaxed">
+                Reviewers won't be able to access this repository without a personal API token. Add one in{' '}
+                <Link
+                  to="/app/settings"
+                  className="underline font-medium hover:text-amber-900 dark:hover:text-amber-200"
+                >
+                  Settings
+                </Link>
+                .
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="card mb-5">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-2">
@@ -413,8 +448,8 @@ export default function RepoDetailsPage() {
               </div>
             </>
           ) : repo.status === 'expired' ? (
-            <div className="space-y-2">
-              <div className="flex items-center gap-1.5">
+            <div className="divide-y divide-slate-200 dark:divide-slate-700">
+              <div className="flex items-center gap-1.5 pb-3">
                 <input
                   type="number"
                   value={extendDays}
@@ -435,7 +470,7 @@ export default function RepoDetailsPage() {
                   Preview
                 </a>
               </div>
-              <div className="flex justify-end">
+              <div className="flex justify-end pt-3">
                 <button
                   onClick={() => setShowDeleteConfirm(true)}
                   className="btn-danger text-sm"
@@ -445,8 +480,8 @@ export default function RepoDetailsPage() {
               </div>
             </div>
           ) : (
-            <div className="space-y-2">
-              <div className="flex items-center gap-1.5">
+            <div className="divide-y divide-slate-200 dark:divide-slate-700">
+              <div className="flex items-center gap-1.5 pb-3">
                 <input
                   type="number"
                   value={extendDays}
@@ -467,7 +502,7 @@ export default function RepoDetailsPage() {
                   Preview
                 </a>
               </div>
-              <div className="flex justify-end gap-1.5">
+              <div className="flex justify-end gap-1.5 pt-3">
                 <button
                   onClick={() => setShowExpireConfirm(true)}
                   className="btn-danger text-sm"
