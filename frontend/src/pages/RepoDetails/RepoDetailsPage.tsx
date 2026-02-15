@@ -438,7 +438,7 @@ export default function RepoDetailsPage() {
                 </a>
                 <button
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="btn-danger text-sm sm:ml-auto"
+                  className="btn-danger text-sm ml-auto"
                 >
                   Delete
                 </button>
@@ -468,7 +468,7 @@ export default function RepoDetailsPage() {
                 >
                   Preview
                 </a>
-                <div className="flex items-center gap-2 sm:ml-auto">
+                <div className="flex items-center gap-2 ml-auto">
                   <button
                     onClick={() => setShowExpireConfirm(true)}
                     className="btn-danger text-sm"
