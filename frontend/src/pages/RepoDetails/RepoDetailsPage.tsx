@@ -413,6 +413,9 @@ export default function RepoDetailsPage() {
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
               {repo.colab_url ? 'Linked Colab notebook shown to reviewers.' : 'Optional: link a Colab notebook for reviewers.'}
             </p>
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 leading-relaxed font-medium">
+              Ensure your notebook does not contain identity-revealing details. This is your responsibility.
+            </p>
           </div>
           <div>
             <p className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide mb-0.5">Expires</p>

@@ -43,8 +43,8 @@ function SuccessView({ result, initialColabUrl, apiCall }: SuccessViewProps) {
   const anonUrl = `${window.location.origin}/a/${result.anonymous_id}/`
   const downloadUrl = `${window.location.origin}/api/a/${result.anonymous_id}/download/`
   const quickStartCode = result.repo_type === 'dataset'
-    ? `# Download the repository\n!wget "${downloadUrl}" -O repo.zip\n!unzip repo.zip -d anonymous_repo\n\n# Load the dataset\nfrom datasets import load_from_disk\ndataset = load_from_disk("anonymous_repo")`
-    : `# Download the repository\n!wget "${downloadUrl}" -O repo.zip\n!unzip repo.zip -d anonymous_repo\n\n# Load the model\nfrom transformers import AutoModel, AutoTokenizer\nmodel = AutoModel.from_pretrained("anonymous_repo")\ntokenizer = AutoTokenizer.from_pretrained("anonymous_repo")`
+    ? `# Download and extract the dataset\n!wget "${downloadUrl}" -O repo.zip\n!unzip repo.zip -d anonymous_repo\n\n# Load the dataset\nimport datasets\ndataset = datasets.load_dataset("anonymous_repo")`
+    : `# Download and extract the model\n!wget "${downloadUrl}" -O repo.zip\n!unzip repo.zip -d anonymous_repo\n\n# Load the model\nfrom transformers import AutoModel, AutoTokenizer\nmodel = AutoModel.from_pretrained("anonymous_repo")\ntokenizer = AutoTokenizer.from_pretrained("anonymous_repo")`
 
   const handleSaveColab = async () => {
     setSavingColab(true)
@@ -111,6 +111,9 @@ function SuccessView({ result, initialColabUrl, apiCall }: SuccessViewProps) {
             </button>
           </div>
           {colabError && <p className="text-red-600 dark:text-red-400 text-xs mt-1">{colabError}</p>}
+          <p className="text-xs text-amber-600 dark:text-amber-400 mt-1.5 leading-relaxed font-medium">
+            Important: Ensure your Colab notebook does not contain any identity-revealing details. This is your responsibility.
+          </p>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -131,6 +134,9 @@ function SuccessView({ result, initialColabUrl, apiCall }: SuccessViewProps) {
           <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Quick Start</span>
         </div>
         <CodeSnippet code={quickStartCode} colabUrl={editColabUrl.trim() || undefined} />
+        <p className="px-5 py-3 text-xs text-slate-400 dark:text-slate-500 leading-relaxed border-t border-slate-100 dark:border-slate-800">
+          This is a typical getting started example. It may need adjustments depending on the {result.repo_type === 'dataset' ? 'dataset' : 'model'} (e.g. configs, subsets, or custom loading). For complex cases, it is strongly advised to provide a Colab notebook.
+        </p>
       </div>
     </div>
   )
@@ -456,6 +462,9 @@ export default function CreateRepoPage() {
           />
           <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5">
             Optional link to a Colab notebook demonstrating usage of your dataset/model.
+          </p>
+          <p className="text-xs text-amber-600 dark:text-amber-400 mt-1.5 leading-relaxed font-medium">
+            Important: Make sure your Colab notebook does not contain any identity-revealing details (author name, affiliation, repo URL, etc.). Maintaining anonymity in the notebook is your responsibility.
           </p>
         </div>
 

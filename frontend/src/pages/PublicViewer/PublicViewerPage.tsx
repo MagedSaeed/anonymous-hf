@@ -311,16 +311,16 @@ function getQuickStartCode(anonymousId: string, repoType: string): string {
   const downloadUrl = `${window.location.origin}/api/a/${anonymousId}/download/`
 
   if (repoType === 'dataset') {
-    return `# Download the repository
+    return `# Download and extract the dataset
 !wget "${downloadUrl}" -O repo.zip
 !unzip repo.zip -d anonymous_repo
 
 # Load the dataset
-from datasets import load_from_disk
-dataset = load_from_disk("anonymous_repo")`
+import datasets
+dataset = datasets.load_dataset("anonymous_repo")`
   }
 
-  return `# Download the repository
+  return `# Download and extract the model
 !wget "${downloadUrl}" -O repo.zip
 !unzip repo.zip -d anonymous_repo
 
@@ -886,10 +886,15 @@ export default function PublicViewerPage() {
                 </div>
               )
             ) : (
-              <CodeSnippet
-                code={quickStartCode}
-                colabUrl={repoInfo?.colab_url || undefined}
-              />
+              <>
+                <CodeSnippet
+                  code={quickStartCode}
+                  colabUrl={repoInfo?.colab_url || undefined}
+                />
+                <p className="px-5 py-3 text-xs text-slate-400 dark:text-slate-500 leading-relaxed border-t border-slate-100 dark:border-slate-800">
+                  This is a typical getting started example. It may need adjustments depending on the {repoInfo?.repo_type === 'dataset' ? 'dataset' : 'model'} (e.g. configs, subsets, or custom loading). For complex cases, it is strongly advised to provide a Colab notebook.
+                </p>
+              </>
             )}
           </div>
         ) : isDirectory && tree.length > 0 ? (

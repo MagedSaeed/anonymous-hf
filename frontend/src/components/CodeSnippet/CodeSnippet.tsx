@@ -27,7 +27,7 @@ export default function CodeSnippet({ code, colabUrl }: Props) {
   return (
     <div>
       {colabUrl && (
-        <div className="flex items-center px-5 py-2.5 border-b border-slate-100 dark:border-slate-700">
+        <div className="flex items-center gap-3 px-5 py-2.5 border-b border-slate-100 dark:border-slate-700">
           <a
             href={colabUrl}
             target="_blank"
@@ -40,6 +40,9 @@ export default function CodeSnippet({ code, colabUrl }: Props) {
               className="h-5"
             />
           </a>
+          <span className="text-xs text-slate-400 dark:text-slate-500 italic">
+            Author-provided notebook for browsing this repository on Colab
+          </span>
         </div>
       )}
       <div className="relative group">
