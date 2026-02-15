@@ -311,7 +311,10 @@ function getQuickStartCode(anonymousId: string, repoType: string): string {
   const downloadUrl = `${window.location.origin}/api/a/${anonymousId}/download/`
 
   if (repoType === 'dataset') {
-    return `# Download and extract the dataset
+    return `# Typical getting started example — may need adjustments
+# depending on the dataset (e.g. configs, subsets, or custom loading).
+
+# Download and extract the dataset
 !wget "${downloadUrl}" -O repo.zip
 !unzip repo.zip -d anonymous_repo
 
@@ -320,7 +323,10 @@ import datasets
 dataset = datasets.load_dataset("anonymous_repo")`
   }
 
-  return `# Download and extract the model
+  return `# Typical getting started example — may need adjustments
+# depending on the model (e.g. custom architecture or config).
+
+# Download and extract the model
 !wget "${downloadUrl}" -O repo.zip
 !unzip repo.zip -d anonymous_repo
 
@@ -557,58 +563,79 @@ export default function PublicViewerPage() {
     : sortedTree.slice(0, FILE_PREVIEW_LIMIT)
   const hasMoreFiles = sortedTree.length > FILE_PREVIEW_LIMIT
 
-  // Metadata badges from frontmatter
-  const metaBadges = frontmatter && (isRootView || isReadmeFile) ? (
-    <div className="flex flex-wrap gap-1.5 mb-4">
-      <MetadataBadge label="lang" values={toArray(frontmatter.language)} color="bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-400" />
-      <MetadataBadge label="license" values={toArray(frontmatter.license)} color="bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400" />
-      <MetadataBadge label="task" values={frontmatter.task_categories || []} color="bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-400" />
-      <MetadataBadge label="size" values={frontmatter.size_categories || []} color="bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400" />
-      {frontmatter.pipeline_tag && (
-        <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-400">
-          <span className="text-[10px] uppercase tracking-wide opacity-60 mr-1">pipeline:</span> {frontmatter.pipeline_tag}
-        </span>
+  // Metadata badges from frontmatter + Colab badge
+  const hasBadgeRow = (frontmatter && (isRootView || isReadmeFile)) || repoInfo?.colab_url
+  const metaBadges = hasBadgeRow ? (
+    <div className="flex flex-wrap items-center gap-1.5 mb-4">
+      {frontmatter && (isRootView || isReadmeFile) && (
+        <>
+          <MetadataBadge label="lang" values={toArray(frontmatter.language)} color="bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-400" />
+          <MetadataBadge label="license" values={toArray(frontmatter.license)} color="bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400" />
+          <MetadataBadge label="task" values={frontmatter.task_categories || []} color="bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-400" />
+          <MetadataBadge label="size" values={frontmatter.size_categories || []} color="bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400" />
+          {frontmatter.pipeline_tag && (
+            <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-400">
+              <span className="text-[10px] uppercase tracking-wide opacity-60 mr-1">pipeline:</span> {frontmatter.pipeline_tag}
+            </span>
+          )}
+          {frontmatter.library_name && (
+            <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-400">
+              <span className="text-[10px] uppercase tracking-wide opacity-60 mr-1">lib:</span> {frontmatter.library_name}
+            </span>
+          )}
+          <MetadataBadge label="tag" values={frontmatter.tags || []} color="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400" />
+          {/* Dataset-specific aggregate badges from dataset_info */}
+          {(() => {
+            const entries = getDatasetInfoEntries(frontmatter.dataset_info)
+            if (entries.length === 0) return null
+            const configCount = frontmatter.configs?.length || entries.length
+            const featureCount = entries[0]?.features?.length || 0
+            const totalRows = entries.reduce((sum, e) =>
+              sum + (e.splits?.reduce((s, sp) => s + (sp.num_examples || 0), 0) || 0), 0)
+            const totalDownload = entries.reduce((sum, e) => sum + (e.download_size || 0), 0)
+            return (
+              <>
+                {configCount > 1 && (
+                  <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded bg-violet-50 dark:bg-violet-950 text-violet-700 dark:text-violet-400">
+                    <span className="text-[10px] uppercase tracking-wide opacity-60 mr-1">configs:</span> {configCount}
+                  </span>
+                )}
+                {featureCount > 0 && (
+                  <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-400">
+                    <span className="text-[10px] uppercase tracking-wide opacity-60 mr-1">features:</span> {featureCount}
+                  </span>
+                )}
+                {totalRows > 0 && (
+                  <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded bg-cyan-50 dark:bg-cyan-950 text-cyan-700 dark:text-cyan-400">
+                    <span className="text-[10px] uppercase tracking-wide opacity-60 mr-1">rows:</span> {formatCount(totalRows)}
+                  </span>
+                )}
+                {totalDownload > 0 && (
+                  <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded bg-orange-50 dark:bg-orange-950 text-orange-700 dark:text-orange-400">
+                    <span className="text-[10px] uppercase tracking-wide opacity-60 mr-1">download:</span> {formatBytes(totalDownload)}
+                  </span>
+                )}
+              </>
+            )
+          })()}
+        </>
       )}
-      {frontmatter.library_name && (
-        <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-400">
-          <span className="text-[10px] uppercase tracking-wide opacity-60 mr-1">lib:</span> {frontmatter.library_name}
-        </span>
+      {repoInfo?.colab_url && (
+        <a
+          href={repoInfo.colab_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5"
+          title="Author-provided notebook"
+        >
+          <img
+            src="https://colab.research.google.com/assets/colab-badge.svg"
+            alt="Open in Colab"
+            className="h-5"
+          />
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 italic">author-provided</span>
+        </a>
       )}
-      <MetadataBadge label="tag" values={frontmatter.tags || []} color="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400" />
-      {/* Dataset-specific aggregate badges from dataset_info */}
-      {(() => {
-        const entries = getDatasetInfoEntries(frontmatter.dataset_info)
-        if (entries.length === 0) return null
-        const configCount = frontmatter.configs?.length || entries.length
-        const featureCount = entries[0]?.features?.length || 0
-        const totalRows = entries.reduce((sum, e) =>
-          sum + (e.splits?.reduce((s, sp) => s + (sp.num_examples || 0), 0) || 0), 0)
-        const totalDownload = entries.reduce((sum, e) => sum + (e.download_size || 0), 0)
-        return (
-          <>
-            {configCount > 1 && (
-              <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded bg-violet-50 dark:bg-violet-950 text-violet-700 dark:text-violet-400">
-                <span className="text-[10px] uppercase tracking-wide opacity-60 mr-1">configs:</span> {configCount}
-              </span>
-            )}
-            {featureCount > 0 && (
-              <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-400">
-                <span className="text-[10px] uppercase tracking-wide opacity-60 mr-1">features:</span> {featureCount}
-              </span>
-            )}
-            {totalRows > 0 && (
-              <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded bg-cyan-50 dark:bg-cyan-950 text-cyan-700 dark:text-cyan-400">
-                <span className="text-[10px] uppercase tracking-wide opacity-60 mr-1">rows:</span> {formatCount(totalRows)}
-              </span>
-            )}
-            {totalDownload > 0 && (
-              <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded bg-orange-50 dark:bg-orange-950 text-orange-700 dark:text-orange-400">
-                <span className="text-[10px] uppercase tracking-wide opacity-60 mr-1">download:</span> {formatBytes(totalDownload)}
-              </span>
-            )}
-          </>
-        )
-      })()}
     </div>
   ) : null
 

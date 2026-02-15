@@ -43,8 +43,8 @@ function SuccessView({ result, initialColabUrl, apiCall }: SuccessViewProps) {
   const anonUrl = `${window.location.origin}/a/${result.anonymous_id}/`
   const downloadUrl = `${window.location.origin}/api/a/${result.anonymous_id}/download/`
   const quickStartCode = result.repo_type === 'dataset'
-    ? `# Download and extract the dataset\n!wget "${downloadUrl}" -O repo.zip\n!unzip repo.zip -d anonymous_repo\n\n# Load the dataset\nimport datasets\ndataset = datasets.load_dataset("anonymous_repo")`
-    : `# Download and extract the model\n!wget "${downloadUrl}" -O repo.zip\n!unzip repo.zip -d anonymous_repo\n\n# Load the model\nfrom transformers import AutoModel, AutoTokenizer\nmodel = AutoModel.from_pretrained("anonymous_repo")\ntokenizer = AutoTokenizer.from_pretrained("anonymous_repo")`
+    ? `# Typical getting started example — may need adjustments\n# depending on the dataset (e.g. configs, subsets, or custom loading).\n\n# Download and extract the dataset\n!wget "${downloadUrl}" -O repo.zip\n!unzip repo.zip -d anonymous_repo\n\n# Load the dataset\nimport datasets\ndataset = datasets.load_dataset("anonymous_repo")`
+    : `# Typical getting started example — may need adjustments\n# depending on the model (e.g. custom architecture or config).\n\n# Download and extract the model\n!wget "${downloadUrl}" -O repo.zip\n!unzip repo.zip -d anonymous_repo\n\n# Load the model\nfrom transformers import AutoModel, AutoTokenizer\nmodel = AutoModel.from_pretrained("anonymous_repo")\ntokenizer = AutoTokenizer.from_pretrained("anonymous_repo")`
 
   const handleSaveColab = async () => {
     setSavingColab(true)
