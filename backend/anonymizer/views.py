@@ -136,7 +136,7 @@ class RepoSyncLatestView(APIView):
         except AnonymousRepo.DoesNotExist:
             return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        token = repo.owner.hf_api_token or repo.owner.hf_access_token
+        token = repo.owner.hf_api_token
         repo_id = repo.get_hf_repo_id()
         if not repo_id:
             return Response(
@@ -193,7 +193,7 @@ class HFRepoListView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        token = user.hf_api_token or user.hf_access_token
+        token = user.hf_api_token
         if not token:
             return Response(
                 {"error": "No HuggingFace token available. Please add an API token in Settings."},

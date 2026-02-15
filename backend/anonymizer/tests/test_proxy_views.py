@@ -24,25 +24,19 @@ def client():
 
 @pytest.mark.django_db
 class TestGetHfToken:
-    def test_prefers_api_token_over_oauth(self):
-        repo = AnonymousRepoFactory(
-            owner__hf_api_token="hf_api_long_lived",
-            owner__hf_access_token="hf_oauth_short_lived",
-        )
+    def test_returns_api_token(self):
+        repo = AnonymousRepoFactory(owner__hf_api_token="hf_api_long_lived")
         assert get_hf_token(repo) == "hf_api_long_lived"
 
-    def test_falls_back_to_oauth_token(self):
+    def test_ignores_oauth_token(self):
         repo = AnonymousRepoFactory(
             owner__hf_api_token="",
             owner__hf_access_token="hf_oauth_token",
         )
-        assert get_hf_token(repo) == "hf_oauth_token"
+        assert get_hf_token(repo) is None
 
-    def test_returns_none_when_no_tokens(self):
-        repo = AnonymousRepoFactory(
-            owner__hf_api_token="",
-            owner__hf_access_token="",
-        )
+    def test_returns_none_when_no_api_token(self):
+        repo = AnonymousRepoFactory(owner__hf_api_token="")
         assert get_hf_token(repo) is None
 
 

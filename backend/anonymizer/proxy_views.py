@@ -54,16 +54,8 @@ def log_access(repo, action, request):
 
 
 def get_hf_token(repo):
-    """Get the appropriate HF token for making requests.
-
-    Priority: owner's personal API token -> OAuth token.
-    """
-    owner = repo.owner
-    if owner.hf_api_token:
-        return owner.hf_api_token
-    if owner.hf_access_token:
-        return owner.hf_access_token
-    return None
+    """Get the owner's personal API token for making HF requests."""
+    return repo.owner.hf_api_token or None
 
 
 class ProxyFileView(View):
