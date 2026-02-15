@@ -121,7 +121,7 @@ class TestProxyFileView:
         assert resp.status_code == 404
 
     @responses.activate
-    def test_proxy_creates_activity_log(self, client, active_repo):
+    def test_proxy_file_does_not_create_activity_log(self, client, active_repo):
         responses.add(
             responses.GET,
             "https://huggingface.co/datasets/testuser/testrepo/resolve/main/README.md",
@@ -130,7 +130,7 @@ class TestProxyFileView:
         )
 
         client.get(f"/api/a/{active_repo.anonymous_id}/resolve/README.md")
-        assert active_repo.activity_logs.filter(action="viewed").count() == 1
+        assert active_repo.activity_logs.filter(action="viewed").count() == 0
 
     @responses.activate
     def test_proxy_401_retries_without_token(self, client, active_repo):
@@ -183,6 +183,18 @@ class TestProxyTreeView:
 
         resp = client.get(f"/api/a/{active_repo.anonymous_id}/tree/data")
         assert resp.status_code == 200
+
+    @responses.activate
+    def test_tree_creates_activity_log(self, client, active_repo):
+        responses.add(
+            responses.GET,
+            "https://huggingface.co/api/datasets/testuser/testrepo/tree/main",
+            json=[{"type": "file", "path": "README.md", "size": 100}],
+            status=200,
+        )
+
+        client.get(f"/api/a/{active_repo.anonymous_id}/tree/")
+        assert active_repo.activity_logs.filter(action="viewed").count() == 1
 
     @responses.activate
     def test_tree_not_found(self, client, active_repo):

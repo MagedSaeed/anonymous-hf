@@ -97,9 +97,6 @@ class ProxyFileView(View):
                 status=hf_response.status_code,
             )
 
-        # Log access
-        log_access(repo, "viewed", request)
-
         # Stream the response
         response = StreamingHttpResponse(
             hf_response.iter_content(chunk_size=CHUNK_SIZE),
