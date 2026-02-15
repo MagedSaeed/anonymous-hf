@@ -5,7 +5,7 @@ from .models import User
 
 class UserSerializer(serializers.ModelSerializer):
     has_hf_token = serializers.SerializerMethodField()
-    hf_api_token = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    hf_api_token = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = User

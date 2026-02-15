@@ -72,7 +72,7 @@ class TestProfileView:
         assert response.status_code == 200
         data = response.json()
         assert data["has_hf_token"] is False
-        assert "hf_api_token" not in data
+        assert data["hf_api_token"] == ""
 
     def test_profile_patch_sets_hf_api_token(self):
         user = UserFactory()
@@ -86,7 +86,7 @@ class TestProfileView:
         assert response.status_code == 200
         data = response.json()
         assert data["has_hf_token"] is True
-        assert "hf_api_token" not in data
+        assert data["hf_api_token"] == "hf_test_token_123"
         user.refresh_from_db()
         assert user.hf_api_token == "hf_test_token_123"
 
