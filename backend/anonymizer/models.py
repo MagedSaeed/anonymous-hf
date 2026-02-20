@@ -121,25 +121,3 @@ class ActivityLog(models.Model):
 
     def __str__(self):
         return f"{self.action} - {self.anonymous_repo.anonymous_id} at {self.timestamp}"
-
-
-class AbuseFlag(models.Model):
-    REASON_CHOICES = [
-        ("high_traffic", "High Traffic"),
-        ("rapid_creation", "Rapid Creation"),
-        ("suspicious_ip", "Suspicious IP"),
-        ("manual", "Manual Flag"),
-    ]
-
-    repo = models.ForeignKey(AnonymousRepo, on_delete=models.CASCADE, related_name="abuse_flags")
-    reason = models.CharField(max_length=20, choices=REASON_CHOICES)
-    details = models.TextField(blank=True, default="")
-    flagged_at = models.DateTimeField(auto_now_add=True)
-    reviewed = models.BooleanField(default=False)
-    action_taken = models.TextField(blank=True, default="")
-
-    class Meta:
-        ordering = ["-flagged_at"]
-
-    def __str__(self):
-        return f"{self.get_reason_display()} - {self.repo.anonymous_id}"

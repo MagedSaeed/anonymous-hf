@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from anonymizer.models import AbuseFlag, ActivityLog, AnonymousRepo
+from anonymizer.models import ActivityLog, AnonymousRepo
 
 
 class ActivityLogInline(admin.TabularInline):
@@ -70,15 +70,3 @@ class ActivityLogAdmin(admin.ModelAdmin):
         return False
 
 
-@admin.register(AbuseFlag)
-class AbuseFlagAdmin(admin.ModelAdmin):
-    list_display = ("flagged_at", "reason", "repo", "reviewed")
-    list_filter = ("reason", "reviewed", "flagged_at")
-    search_fields = ("repo__anonymous_id", "details")
-    readonly_fields = ("repo", "reason", "details", "flagged_at")
-    actions = ["mark_reviewed"]
-
-    @admin.action(description="Mark as reviewed")
-    def mark_reviewed(self, request, queryset):
-        queryset.update(reviewed=True)
-        self.message_user(request, f"Marked {queryset.count()} flags as reviewed.")
