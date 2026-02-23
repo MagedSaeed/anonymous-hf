@@ -34,9 +34,6 @@ class AnonymousRepo(models.Model):
     view_count = models.PositiveIntegerField(default=0)
     access_count = models.PositiveIntegerField(default=0)
 
-    # Download settings
-    allow_download = models.BooleanField(default=True)
-
     # Optional colab notebook link
     colab_url = models.URLField(max_length=500, blank=True, default="")
 

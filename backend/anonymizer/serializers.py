@@ -29,7 +29,6 @@ class AnonymousRepoSerializer(serializers.ModelSerializer):
             "visitor_downloads",
             "days_until_expiry",
             "is_expired",
-            "allow_download",
             "colab_url",
         ]
         read_only_fields = [
@@ -60,7 +59,6 @@ class CreateRepoSerializer(serializers.Serializer):
     original_url = serializers.URLField()
     branch = serializers.CharField(default="main", required=False)
     expiry_days = serializers.IntegerField(min_value=1, max_value=365, required=False)
-    allow_download = serializers.BooleanField(default=True, required=False)
     colab_url = serializers.URLField(required=False, allow_blank=True, default="")
 
     def validate_original_url(self, value):
@@ -84,7 +82,6 @@ class CreateRepoSerializer(serializers.Serializer):
             original_url=url,
             branch=branch,
             expires_at=timezone.now() + timezone.timedelta(days=expiry_days),
-            allow_download=validated_data.get("allow_download", True),
             colab_url=validated_data.get("colab_url", ""),
         )
         return repo

@@ -160,7 +160,6 @@ class ProxyInfoView(View):
             "status": repo.status,
             "created_at": repo.created_at.isoformat(),
             "expires_at": repo.expires_at.isoformat(),
-            "allow_download": repo.allow_download,
             "colab_url": repo.colab_url,
         }
 
@@ -210,9 +209,6 @@ class ProxyDownloadView(View):
 
     def get(self, request, anonymous_id):
         repo = get_repo_or_404(anonymous_id)
-
-        if not repo.allow_download:
-            return HttpResponse("Downloads are disabled for this repository", status=403)
 
         repo_id = repo.get_hf_repo_id()
         if not repo_id:

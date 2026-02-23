@@ -220,7 +220,6 @@ export default function CreateRepoPage() {
         original_url: inputMode === 'url' ? originalUrl.trim() : normalizeInput(originalUrl, repoType),
         branch,
         expiry_days: expiryDays,
-        allow_download: true,
       }
       if (colabUrl.trim()) {
         payload.colab_url = colabUrl.trim()

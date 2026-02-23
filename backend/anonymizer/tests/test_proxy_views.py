@@ -217,7 +217,7 @@ class TestProxyInfoView:
         assert data["anonymous_id"] == active_repo.anonymous_id
         assert data["repo_type"] == "dataset"
         assert data["status"] == "active"
-        assert data["allow_download"] is True
+        assert "allow_download" not in data
 
     def test_info_not_found(self, client):
         resp = client.get("/api/a/nonexistent12/info/")
@@ -248,13 +248,5 @@ class TestProxyDownloadView:
         assert resp["Content-Type"] == "application/zip"
         assert "attachment" in resp["Content-Disposition"]
 
-    def test_download_disabled(self, client):
-        repo = AnonymousRepoFactory(
-            original_url="https://huggingface.co/datasets/testuser/testrepo",
-            allow_download=False,
-            expires_at=timezone.now() + timezone.timedelta(days=30),
-        )
-        resp = client.get(f"/api/a/{repo.anonymous_id}/download/")
-        assert resp.status_code == 403
 
 
