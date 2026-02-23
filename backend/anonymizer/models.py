@@ -108,9 +108,7 @@ class ActivityLog(models.Model):
         AnonymousRepo, on_delete=models.CASCADE, related_name="activity_logs"
     )
     action = models.CharField(max_length=20, choices=ACTION_CHOICES)
-    actor_type = models.CharField(
-        max_length=10, choices=ACTOR_TYPE_CHOICES, default="anonymous"
-    )
+    actor_type = models.CharField(max_length=10, choices=ACTOR_TYPE_CHOICES, default="anonymous")
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:

@@ -4,15 +4,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('anonymizer', '0007_add_restored_action'),
+        ("anonymizer", "0007_add_restored_action"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='activitylog',
-            name='action',
-            field=models.CharField(choices=[('created', 'Created'), ('viewed', 'Viewed'), ('downloaded', 'Downloaded'), ('extended', 'Extended'), ('deleted', 'Deleted'), ('restored', 'Restored')], max_length=20),
+            model_name="activitylog",
+            name="action",
+            field=models.CharField(
+                choices=[
+                    ("created", "Created"),
+                    ("viewed", "Viewed"),
+                    ("downloaded", "Downloaded"),
+                    ("extended", "Extended"),
+                    ("deleted", "Deleted"),
+                    ("restored", "Restored"),
+                ],
+                max_length=20,
+            ),
         ),
     ]

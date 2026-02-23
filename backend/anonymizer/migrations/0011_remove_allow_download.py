@@ -4,14 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('anonymizer', '0010_remove_abuseflag'),
+        ("anonymizer", "0010_remove_abuseflag"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='anonymousrepo',
-            name='allow_download',
+            model_name="anonymousrepo",
+            name="allow_download",
         ),
     ]

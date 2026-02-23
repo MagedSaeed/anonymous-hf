@@ -48,9 +48,7 @@ class RepoListCreateView(generics.ListCreateAPIView):
         serializer = CreateRepoSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         repo = serializer.save()
-        ActivityLog.objects.create(
-            anonymous_repo=repo, action="created", actor_type="owner"
-        )
+        ActivityLog.objects.create(anonymous_repo=repo, action="created", actor_type="owner")
         output_serializer = AnonymousRepoSerializer(repo)
         return Response(output_serializer.data, status=status.HTTP_201_CREATED)
 
@@ -95,9 +93,7 @@ class RepoDetailView(generics.RetrieveUpdateDestroyAPIView):
         # Soft-delete only
         instance.status = "deleted"
         instance.save(update_fields=["status"])
-        ActivityLog.objects.create(
-            anonymous_repo=instance, action="deleted", actor_type="owner"
-        )
+        ActivityLog.objects.create(anonymous_repo=instance, action="deleted", actor_type="owner")
 
 
 class RepoExpireView(APIView):

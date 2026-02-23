@@ -247,6 +247,3 @@ class TestProxyDownloadView:
         assert resp.status_code == 200
         assert resp["Content-Type"] == "application/zip"
         assert "attachment" in resp["Content-Disposition"]
-
-
-

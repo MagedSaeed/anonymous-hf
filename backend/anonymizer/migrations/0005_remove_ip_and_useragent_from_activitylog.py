@@ -4,18 +4,17 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('anonymizer', '0004_remove_preview_fields'),
+        ("anonymizer", "0004_remove_preview_fields"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='activitylog',
-            name='ip_address',
+            model_name="activitylog",
+            name="ip_address",
         ),
         migrations.RemoveField(
-            model_name='activitylog',
-            name='user_agent',
+            model_name="activitylog",
+            name="user_agent",
         ),
     ]

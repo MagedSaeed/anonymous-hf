@@ -164,11 +164,7 @@ def _get_user_orgs(token):
 
         # Fallback: if no fine-grained info is present (e.g. personal
         # access token instead of OAuth), return all user orgs.
-        return [
-            org.get("name", "")
-            for org in data.get("orgs", [])
-            if org.get("name")
-        ]
+        return [org.get("name", "") for org in data.get("orgs", []) if org.get("name")]
     except requests.RequestException:
         pass
     return []

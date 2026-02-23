@@ -4,13 +4,12 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('anonymizer', '0009_alter_activitylog_action'),
+        ("anonymizer", "0009_alter_activitylog_action"),
     ]
 
     operations = [
         migrations.DeleteModel(
-            name='AbuseFlag',
+            name="AbuseFlag",
         ),
     ]

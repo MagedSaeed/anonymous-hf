@@ -192,9 +192,7 @@ class TestRepoExpireView:
         authenticated_client.post(f"/api/repos/{repo.pk}/expire/")
         from anonymizer.models import ActivityLog
 
-        log = ActivityLog.objects.filter(
-            anonymous_repo=repo, action="manually_expired"
-        ).first()
+        log = ActivityLog.objects.filter(anonymous_repo=repo, action="manually_expired").first()
         assert log is not None
         assert log.actor_type == "owner"
 

@@ -4,22 +4,21 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('anonymizer', '0003_add_download_and_preview_fields'),
+        ("anonymizer", "0003_add_download_and_preview_fields"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='anonymousrepo',
-            name='allowed_configs',
+            model_name="anonymousrepo",
+            name="allowed_configs",
         ),
         migrations.RemoveField(
-            model_name='anonymousrepo',
-            name='allowed_splits',
+            model_name="anonymousrepo",
+            name="allowed_splits",
         ),
         migrations.RemoveField(
-            model_name='anonymousrepo',
-            name='preview_rows',
+            model_name="anonymousrepo",
+            name="preview_rows",
         ),
     ]

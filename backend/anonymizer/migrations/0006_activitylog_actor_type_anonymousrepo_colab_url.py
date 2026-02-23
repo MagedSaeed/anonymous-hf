@@ -4,20 +4,27 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('anonymizer', '0005_remove_ip_and_useragent_from_activitylog'),
+        ("anonymizer", "0005_remove_ip_and_useragent_from_activitylog"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='activitylog',
-            name='actor_type',
-            field=models.CharField(choices=[('anonymous', 'Anonymous'), ('non_owner', 'Authenticated Non-Owner'), ('owner', 'Owner')], default='anonymous', max_length=10),
+            model_name="activitylog",
+            name="actor_type",
+            field=models.CharField(
+                choices=[
+                    ("anonymous", "Anonymous"),
+                    ("non_owner", "Authenticated Non-Owner"),
+                    ("owner", "Owner"),
+                ],
+                default="anonymous",
+                max_length=10,
+            ),
         ),
         migrations.AddField(
-            model_name='anonymousrepo',
-            name='colab_url',
-            field=models.URLField(blank=True, default='', max_length=500),
+            model_name="anonymousrepo",
+            name="colab_url",
+            field=models.URLField(blank=True, default="", max_length=500),
         ),
     ]
