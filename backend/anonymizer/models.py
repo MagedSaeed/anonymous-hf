@@ -5,6 +5,8 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
+from anonymizer.services.huggingface_client import parse_hf_url
+
 
 def generate_anonymous_id():
     alphabet = string.ascii_lowercase + string.digits
@@ -75,8 +77,6 @@ class AnonymousRepo(models.Model):
 
     def get_hf_repo_id(self):
         """Extract repo_id from the original URL (e.g., 'username/repo-name')."""
-        from anonymizer.services.huggingface_client import parse_hf_url
-
         return parse_hf_url(self.original_url).get("repo_id", "")
 
     def get_proxied_url(self, file_path=""):
