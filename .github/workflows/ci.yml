@@ -100,7 +100,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build backend image
-        run: docker build -t anonymous-hf-backend ./backend
+        run: docker build -t anonymous-hf-backend -f backend/Dockerfile .
 
       - name: Build frontend image
-        run: docker build -t anonymous-hf-frontend ./frontend
+        run: docker build -t anonymous-hf-frontend -f frontend/Dockerfile .

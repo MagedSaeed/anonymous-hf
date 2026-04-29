@@ -117,7 +117,7 @@ mdl = AutoModelForSequenceClassification.from_pretrained("anonymous_repo")
 
 ## Tech stack
 
-- **Backend** — Django 6.0 + DRF 3.16, Python 3.12+ ([UV](https://docs.astral.sh/uv/)), custom HuggingFace OAuth2 (no `django-allauth` — HF isn't a built-in provider), Django-Q2, SQLite (dev) / PostgreSQL (prod).
+- **Backend** — Django 6.0 + DRF 3.16, Python 3.12+ ([uv](https://docs.astral.sh/uv/)), custom HuggingFace OAuth2 (no `django-allauth` — HF isn't a built-in provider), Django-Q2, SQLite (dev) / PostgreSQL (prod).
 - **Frontend** — React 19 + TypeScript 5.9, Vite 7.3, Tailwind CSS 4.1, React Router 7.
 - **Infra** — Docker Compose (dev + prod), Nginx for the SPA, Gunicorn + WhiteNoise for Django.
 - **Quality** — Ruff (Python), ESLint + Prettier (TS), pytest + Factory Boy + `responses`, Vitest + React Testing Library.
@@ -142,7 +142,7 @@ You'll need HuggingFace OAuth credentials. Create an OAuth app at https://huggin
 
 ## Local development
 
-Requires Python 3.12+, Node 20+, and [UV](https://docs.astral.sh/uv/getting-started/installation/).
+Requires Python 3.12+, Node 20+, and [uv](https://docs.astral.sh/uv/getting-started/installation/).
 
 ```bash
 # Backend  →  http://localhost:8000
