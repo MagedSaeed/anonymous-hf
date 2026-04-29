@@ -1,0 +1,42 @@
+# Version control
+.git
+.gitignore
+.github
+
+# Python
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/.venv
+**/.pytest_cache
+**/.ruff_cache
+**/htmlcov
+**/.coverage
+**/.coverage.*
+**/coverage.xml
+
+# Node
+**/node_modules
+**/dist
+**/.vite
+
+# Local databases & env files
+**/db.sqlite3
+**/db.sqlite3-journal
+.env
+.env.local
+.env.*.local
+
+# Editor / OS
+.vscode
+.idea
+**/.DS_Store
+
+# Docs / templates
+ARCHITECTURE_TEMPLATE.md
+UI_DESIGN_TEMPLATE.md
+features_docs
+
+# Claude
+.claude
+CLAUDE.md

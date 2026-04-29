@@ -9,11 +9,11 @@ WORKDIR /app
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 # Install dependencies
-COPY pyproject.toml uv.lock ./
+COPY backend/pyproject.toml backend/uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 
 # Copy application code
-COPY . .
+COPY backend/ .
 
 # Collect static files
 RUN uv run python manage.py collectstatic --noinput 2>/dev/null || true
