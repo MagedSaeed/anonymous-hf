@@ -12,13 +12,15 @@
 [![Ruff](https://img.shields.io/badge/code%20style-ruff-D7FF64.svg)](https://docs.astral.sh/ruff/)
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg?logo=docker&logoColor=white)](docker-compose.yml)
 
-An anonymizing service for HuggingFace repositories (models & datasets) that lets authors share their work **anonymously** — without revealing their identity — with any visitor (e.g., double-blind peer reviewers, journal editors, blog readers). Authors submit a HuggingFace branch URL; the service returns an anonymous link that streams files from HuggingFace through this service, hiding the original owner identity.
+An anonymizing service for HuggingFace repositories (models & datasets) that lets authors share their work **anonymously** — without revealing their identity — with any visitor (e.g., double-blind peer reviewers, journal editors, blog readers). Authors submit a HuggingFace branch URL; the service returns an anonymous link that streams files from HuggingFace through this service, hiding the repo ownership.
 
 **Try it now → [anonymous-hf.up.railway.app/app](https://anonymous-hf.up.railway.app/app)**
 
-> Originally built for academic peer review, where revealing the author's HuggingFace handle would break anonymity, but useful any time you want to share a private HuggingFace repo. HuggingFace does not offer this feature: for models and datasets, [visibility is only public or private](https://huggingface.co/docs/hub/repositories-settings#repository-visibility): *public* (anyone can find and clone it) or *private* (everyone except the owner gets `404 - Repo not found`). Protected/link-shared visibility only exists for **Spaces**, and only on PRO/Team/Enterprise plans. There's no built-in way to grant specific outside viewers anonymous, read view to a private model or dataset.
+> Originally built for academic peer review, where revealing the author's HuggingFace handle would break anonymity, but useful any time you want to share a private HuggingFace repo. HuggingFace repos [visibility is only public or private](https://huggingface.co/docs/hub/repositories-settings#repository-visibility): *public* (anyone can find and clone it) or *private* (everyone except the owner gets `404 - Repo not found`). Protected/link-shared visibility only exists for **Spaces**, and only on PRO/Team/Enterprise plans. There's no built-in way to grant specific outside viewers anonymous, read-only view to a private model or dataset.
 
-*This service is the HuggingFace counterpart to [Anonymous GitHub](https://anonymous.4open.science/). The service has been built on top of my [cookiecutter-django-react](https://github.com/MagedSaeed/cookiecutter-django-react) template.*
+*This service is the HuggingFace version of [Anonymous GitHub](https://anonymous.4open.science/).*
+
+*The service has been built on top of my [cookiecutter-django-react](https://github.com/MagedSaeed/cookiecutter-django-react) template.*
 
 ---
 
@@ -28,7 +30,7 @@ An anonymizing service for HuggingFace repositories (models & datasets) that let
 - [Features](#features)
 - [Walkthrough: Colab + anonymous repo](#walkthrough-shipping-a-runnable-model-with-a-colab-notebook)
 - [Tech stack](#tech-stack)
-- [Quick start (Docker)](#quick-start-for-local-development-and-exploration-with-docker)
+- [Quick start (Docker)](#quick-start-docker)
 - [Local development](#local-development)
 - [Configuration](#configuration)
 - [Project layout](#project-layout)
@@ -62,7 +64,7 @@ Author                    Anonymous-HF                    Visitor
   │        (e.g. double-blind reviewers, journal editors)    │
   ├──────────────────────────────────────────────────────────▶│
   │                            │                             │
-  │                            │ 5. Visitor browses /        │
+  │                            │ 5. Visitor browses or       │
   │                            │    downloads files          │
   │                            │◀────────────────────────────┤
   │                            │                             │
@@ -78,9 +80,9 @@ The original HuggingFace URL is **never exposed** to visitors. Files are streame
 
 - **HuggingFace OAuth login** — authors sign in with their existing HF account.
 - **Anonymous shareable URLs** — random 12-character IDs (`/a/abc123def456/`).
-- **Datasets and Models**.
+- **Supports both datasets and models** — works with any HuggingFace repo type.
 - **File browser + viewer** — repo visitors can navigate the repo tree and preview files in the browser.
-- **Streaming downloads** — files are streamed directly from hf, never cached in the server.
+- **Streaming downloads** — files are streamed directly from HF, never cached in the server.
 - **Auto-expiry** — repos expire after a configurable number of days.
 - **Manual controls** — owners can extend, expire, or soft-delete a repo from the dashboard.
 - **Activity logging** — every view, download, and admin action is logged with actor type (anonymous / non-owner / owner).
@@ -89,11 +91,11 @@ The original HuggingFace URL is **never exposed** to visitors. Files are streame
 
 ## Walkthrough: shipping a runnable model with a Colab notebook
 
-A common reviewer comment is *"the paper claims X, but I can't reproduce it."* or *"the model and dataset is not publickly available to experiment with it."* The optional **Colab link** feature on each repo allows you to attach a notebook that loads files directly from the anonymous URL, so visitors can run your model in one click and interact with it without ever seeing your HuggingFace handle and breaking the anonymity.
+A common reviewer comment is *"the paper claims X, but I can't reproduce it without unavailable code/dataset,"* or *"the model and dataset are not publicly available to experiment with."* The optional **Colab link** on each repo allows you to attach a notebook that loads files directly from the anonymous URL, tailored to the specific dataset/model setup, so visitors can run your model and interact with it while maintaining double-blind anonymity.
 
 **1) As the author** — push a fine-tuned model or a dataset to a HuggingFace branch, submit the branch URL here, and you'll get a shareable viewer URL like `https://anonymous-hf.up.railway.app/a/{id}/`.
 
-**2) Create a Colab notebook** that pulls the repo from the matching API endpoint (`/api/a/{id}/download/`) and loads it with the standard HuggingFace tooling — three lines for a dataset, four for a model:
+**2) [Optional]: Create a Colab notebook** that pulls the repo from the matching API endpoint (`/api/a/{id}/download/`) and loads it with the standard HuggingFace tooling — three lines for a dataset, four for a model:
 
 ```python
 # Download the repository
@@ -113,7 +115,7 @@ tok = AutoTokenizer.from_pretrained("anonymous_repo")
 mdl = AutoModelForSequenceClassification.from_pretrained("anonymous_repo")
 ```
 
-**3) Paste the Colab URL** into the *Colab link* field on the repo's detail page. The public viewer renders an **Open in Colab** badge so visitors land in a runnable notebook with a single click.
+**3) Paste the Colab URL** into the *Colab link* field on the repo's detail page. The public viewer renders an **Open in Colab** badge so visitors land in a runnable notebook.
 
 ## Tech stack
 
@@ -122,7 +124,7 @@ mdl = AutoModelForSequenceClassification.from_pretrained("anonymous_repo")
 - **Infra** — Docker Compose (dev + prod), Nginx for the SPA, Gunicorn + WhiteNoise for Django.
 - **Quality** — Ruff (Python), ESLint + Prettier (TS), pytest + Factory Boy + `responses`, Vitest + React Testing Library.
 
-## Quick start for local development and exploration (with Docker)
+## Quick start (Docker)
 
 The fastest way to try it:
 
@@ -251,7 +253,7 @@ Production specifics:
 - Health check endpoint: `GET /api/health/` (used by the backend container's healthcheck).
 - Postgres and Redis volumes persist data between restarts.
 
-You'll likely want to put a TLS-terminating reverse proxy (Caddy, Traefik, or Nginx) in front of the frontend container.
+You'll likely want to put a TLS-terminating reverse proxy (Caddy, Traefik, or Nginx) in front of the frontend container (I use nginx in my Railway deployment).
 
 ## Architecture notes
 
@@ -259,13 +261,9 @@ A few decisions that aren't obvious from the code alone:
 
 - **Streaming-only, no storage.** `proxy_views.py` returns a `StreamingHttpResponse` that pulls 8KB chunks from `huggingface.co/{type}s/{repo}/resolve/{branch}/{path}` on demand. Bandwidth is the main cost, not storage.
 - **Soft delete + auto-expiry.** Deleted repos keep `status="deleted"` so audit logs survive; `expires_at` is auto-populated from `owner.default_expiry_days` on save.
-- **Ownership enforced at the queryset.** API views filter via `.filter(owner=request.user)` rather than checking ownership in Python — fewer ways to forget the check.
 - **Session auth, not JWT.** SPA is same-origin, so cookies work without token plumbing. The CSRF cookie is intentionally **not** HttpOnly so the React app can read it for fetch headers.
 
 ## Contributing
 
 Fork → branch → `pre-commit install` → write tests → run the lint/test commands above → open a PR. CI runs the same commands, so make sure they pass locally first.
 
-## License
-
-This project is released under the [MIT License](LICENSE).
