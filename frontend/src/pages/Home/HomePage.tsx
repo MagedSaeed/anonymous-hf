@@ -120,11 +120,11 @@ export default function HomePage() {
               3
             </div>
             <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-1">
-              Share with Reviewers
+              Share
             </h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-              Give the anonymous URL to reviewers. They see your content,
-              not your identity.
+              Give the anonymous URL to visitors & reviewers.
+              They see your content anonymously.
             </p>
           </div>
         </div>
