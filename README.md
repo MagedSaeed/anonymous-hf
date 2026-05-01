@@ -91,7 +91,7 @@ The original HuggingFace URL is **never exposed** to visitors. Files are streame
 
 ## Walkthrough: shipping a runnable model with a Colab notebook
 
-A common reviewer comment is *"the paper claims X, but I can't reproduce it without unavailable code/dataset,"* or *"the model and dataset are not publicly available to experiment with."* The optional **Colab link** on each repo allows you to attach a notebook that loads files directly from the anonymous URL, tailored to the specific dataset/model setup, so visitors can run your model and interact with it while maintaining double-blind anonymity.
+A common reviewer comment is *"the paper claims X, but I can't reproduce it without available code/dataset,"* or *"the model and dataset are not publicly available to experiment with."* The optional **Colab link** on each repo allows you to attach a notebook that loads files directly from the anonymous URL, tailored to the specific dataset/model setup, so visitors can run your model and interact with it while maintaining double-blind anonymity.
 
 **1) As the author** — push a fine-tuned model or a dataset to a HuggingFace branch, submit the branch URL here, and you'll get a shareable viewer URL like `https://anonymous-hf.up.railway.app/a/{id}/`.
 
