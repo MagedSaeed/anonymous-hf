@@ -591,7 +591,7 @@ Create `backend/anonymizer/templates/admin/analytics_dashboard.html`:
   </div>
   <div style="border:1px solid #ccc;border-radius:8px;padding:1rem;min-width:140px;">
     <div style="font-size:1.5rem;font-weight:600;">{{ stats.total_owners }}</div>
-    <div>Owners</div>
+    <div>Users</div>
   </div>
 </div>
 
@@ -609,7 +609,7 @@ Create `backend/anonymizer/templates/admin/analytics_dashboard.html`:
     </rect>
   {% endfor %}
 </svg>
-<p style="color:#888;">Peak day: {{ stats.max_daily }} views. All numbers computed server-side from the activity log; nothing leaves this database.</p>
+<p style="color:#888;">Peak day: {{ stats.max_daily }} views. All numbers computed server-side from the activity log</p>
 {% endblock %}
 ```
 

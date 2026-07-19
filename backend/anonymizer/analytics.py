@@ -15,9 +15,9 @@ def aggregate_dashboard_stats(days: int = 30) -> dict:
     since = now - timedelta(days=days)
 
     status_counts = dict(AnonymousRepo.objects.values_list("status").annotate(n=Count("id")))
-    total_owners = AnonymousRepo.objects.values("owner").distinct().count()
 
     user_model = get_user_model()
+    total_users = user_model.objects.count()
     latest_repo_date = (
         AnonymousRepo.objects.order_by("-created_at").values_list("created_at", flat=True).first()
     )
@@ -46,7 +46,7 @@ def aggregate_dashboard_stats(days: int = 30) -> dict:
         "active_repos": status_counts.get("active", 0),
         "expired_repos": status_counts.get("expired", 0),
         "deleted_repos": status_counts.get("deleted", 0),
-        "total_owners": total_owners,
+        "total_users": total_users,
         "latest_repo_date": latest_repo_date,
         "latest_user_date": latest_user_date,
         "total_views": views.count(),

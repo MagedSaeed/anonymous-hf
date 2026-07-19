@@ -25,7 +25,7 @@ def test_aggregate_counts_views_downloads_and_actor_split():
     assert stats["total_downloads"] == 1
     assert stats["total_repos"] == 1
     assert stats["active_repos"] == 1
-    assert stats["total_owners"] == 1
+    assert stats["total_users"] == 1
     assert stats["latest_repo_date"] == repo.created_at
     assert stats["latest_user_date"] == owner.date_joined
     assert len(stats["daily_views"]) == 30
@@ -76,3 +76,5 @@ def test_dashboard_renders_for_staff():
     resp = client.get(reverse("admin:analytics_dashboard"))
     assert resp.status_code == 200
     assert b"Analytics" in resp.content
+    # "View analytics" header link (base_site override) is present.
+    assert b"View analytics" in resp.content
