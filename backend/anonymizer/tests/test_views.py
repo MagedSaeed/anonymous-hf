@@ -2,9 +2,21 @@ import pytest
 from django.test import Client
 from django.utils import timezone
 
-from anonymizer.models import AnonymousRepo
+from anonymizer.models import ActivityLog, AnonymousRepo
 from anonymizer.tests.factories import ActivityLogFactory, AnonymousRepoFactory
 from core.tests.factories import UserFactory
+
+
+@pytest.mark.django_db
+def test_activity_log_filter_viewer(authenticated_client, user):
+    repo = AnonymousRepoFactory(owner=user)
+    ActivityLog.objects.create(anonymous_repo=repo, action="viewed", actor_type="viewer")
+    ActivityLog.objects.create(anonymous_repo=repo, action="viewed", actor_type="owner")
+
+    resp = authenticated_client.get(f"/api/repos/{repo.id}/activity/?actor_type=others")
+    assert resp.status_code == 200
+    actors = {row["actor_type"] for row in resp.json()["results"]}
+    assert actors == {"viewer"}
 
 
 @pytest.fixture

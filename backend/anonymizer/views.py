@@ -170,8 +170,8 @@ class ActivityLogListView(generics.ListAPIView):
         )
         actor_type = self.request.query_params.get("actor_type")
         if actor_type == "others":
-            qs = qs.filter(actor_type__in=["anonymous", "non_owner"])
-        elif actor_type in ("anonymous", "non_owner", "owner"):
+            qs = qs.filter(actor_type="viewer")
+        elif actor_type in ("viewer", "owner"):
             qs = qs.filter(actor_type=actor_type)
         return qs
 

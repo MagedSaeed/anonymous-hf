@@ -16,10 +16,8 @@ const ACTOR_FILTERS = [
 
 function actorBadge(actorType: string) {
   switch (actorType) {
-    case 'anonymous':
-      return { color: 'bg-slate-300', label: 'Anonymous', textColor: 'text-slate-500 dark:text-slate-400' }
-    case 'non_owner':
-      return { color: 'bg-slate-300 dark:bg-slate-600', label: 'Not Me', textColor: 'text-slate-500 dark:text-slate-400' }
+    case 'viewer':
+      return { color: 'bg-slate-300 dark:bg-slate-600', label: 'Reviewer', textColor: 'text-slate-500 dark:text-slate-400' }
     case 'owner':
       return { color: 'bg-amber-400', label: 'You', textColor: 'text-amber-700 dark:text-amber-400' }
     default:

@@ -1,8 +1,41 @@
 import pytest
 from django.utils import timezone
 
-from anonymizer.models import AnonymousRepo, generate_anonymous_id
+from anonymizer.models import ActivityLog, AnonymousRepo, generate_anonymous_id
 from anonymizer.tests.factories import ActivityLogFactory, AnonymousRepoFactory
+
+
+@pytest.mark.django_db
+def test_actor_type_choices_are_owner_and_viewer():
+    values = {c[0] for c in ActivityLog._meta.get_field("actor_type").choices}
+    assert values == {"owner", "viewer"}
+
+
+@pytest.mark.django_db
+def test_actor_type_defaults_to_viewer():
+    repo = AnonymousRepoFactory()
+    log = ActivityLog.objects.create(anonymous_repo=repo, action="viewed")
+    assert log.actor_type == "viewer"
+
+
+@pytest.mark.django_db
+def test_repo_has_no_counter_fields():
+    field_names = {f.name for f in AnonymousRepo._meta.get_fields()}
+    assert "view_count" not in field_names
+    assert "access_count" not in field_names
+
+
+@pytest.mark.django_db
+def test_legacy_actor_types_remap_to_viewer():
+    repo = AnonymousRepoFactory()
+    ActivityLog.objects.create(anonymous_repo=repo, action="viewed", actor_type="anonymous")
+    ActivityLog.objects.create(anonymous_repo=repo, action="viewed", actor_type="non_owner")
+    # Same query the 0013 data migration runs:
+    ActivityLog.objects.filter(actor_type__in=["anonymous", "non_owner"]).update(
+        actor_type="viewer"
+    )
+    assert ActivityLog.objects.filter(actor_type="viewer").count() == 2
+    assert ActivityLog.objects.exclude(actor_type__in=["owner", "viewer"]).count() == 0
 
 
 @pytest.mark.django_db

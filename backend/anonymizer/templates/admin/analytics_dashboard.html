@@ -1,0 +1,45 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h1>Analytics Dashboard</h1>
+
+<div style="display:flex;gap:1rem;flex-wrap:wrap;margin:1rem 0;">
+  <div style="border:1px solid #ccc;border-radius:8px;padding:1rem;min-width:140px;">
+    <div style="font-size:2rem;font-weight:700;">{{ stats.total_views }}</div>
+    <div>Total views</div>
+  </div>
+  <div style="border:1px solid #ccc;border-radius:8px;padding:1rem;min-width:140px;">
+    <div style="font-size:1.5rem;font-weight:600;">{{ stats.total_downloads }}</div>
+    <div>Total downloads</div>
+  </div>
+  <div style="border:1px solid #ccc;border-radius:8px;padding:1rem;min-width:140px;">
+    <div style="font-size:1.5rem;font-weight:600;">{{ stats.total_repos }}</div>
+    <div>Repos ({{ stats.active_repos }} active / {{ stats.expired_repos }} expired / {{ stats.deleted_repos }} deleted)</div>
+  </div>
+  <div style="border:1px solid #ccc;border-radius:8px;padding:1rem;min-width:140px;">
+    <div style="font-size:1.5rem;font-weight:600;">{{ stats.total_owners }}</div>
+    <div>Owners</div>
+  </div>
+</div>
+
+<p style="color:#888;">
+  Latest repo created: <strong>{{ stats.latest_repo_date|date:"Y-m-d H:i"|default:"—" }}</strong>
+  &nbsp;·&nbsp;
+  Latest user joined: <strong>{{ stats.latest_user_date|date:"Y-m-d H:i"|default:"—" }}</strong>
+</p>
+
+<h2>Views by actor</h2>
+<p>External (viewer): <strong>{{ stats.viewer_views }}</strong> &nbsp;·&nbsp; Owner self-views: <strong>{{ stats.owner_views }}</strong></p>
+
+<h2>Views — last 30 days</h2>
+<svg width="100%" viewBox="0 0 620 140" preserveAspectRatio="none" style="border:1px solid #eee;">
+  {% for d in stats.daily_views %}
+    <rect x="{% widthratio forloop.counter0 1 20 %}" y="0"
+          width="18"
+          height="{% if stats.max_daily %}{% widthratio d.count stats.max_daily 120 %}{% else %}0{% endif %}"
+          fill="#fbbf24">
+      <title>{{ d.date }}: {{ d.count }}</title>
+    </rect>
+  {% endfor %}
+</svg>
+<p style="color:#888;">Peak day: {{ stats.max_daily }} views. All numbers computed server-side from the activity log; nothing leaves this database.</p>
+{% endblock %}

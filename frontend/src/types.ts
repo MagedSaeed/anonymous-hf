@@ -44,7 +44,7 @@ export interface RepoInfo {
 
 export interface ActivityLog {
   action: string
-  actor_type: 'anonymous' | 'non_owner' | 'owner'
+  actor_type: 'owner' | 'viewer'
   timestamp: string
 }
 

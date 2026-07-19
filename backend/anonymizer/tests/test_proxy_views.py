@@ -1,10 +1,36 @@
+from types import SimpleNamespace
+
 import pytest
 import responses
 from django.test import Client
 from django.utils import timezone
 
-from anonymizer.proxy_views import get_hf_token
+from anonymizer.proxy_views import _get_actor_type, get_hf_token
 from anonymizer.tests.factories import AnonymousRepoFactory
+from core.tests.factories import UserFactory
+
+
+@pytest.mark.django_db
+def test_actor_type_owner():
+    # Real User instances report is_authenticated == True.
+    repo = AnonymousRepoFactory()
+    request = SimpleNamespace(user=repo.owner)
+    assert _get_actor_type(request, repo) == "owner"
+
+
+@pytest.mark.django_db
+def test_actor_type_authenticated_non_owner_is_viewer():
+    repo = AnonymousRepoFactory()
+    other = UserFactory()
+    request = SimpleNamespace(user=other)
+    assert _get_actor_type(request, repo) == "viewer"
+
+
+@pytest.mark.django_db
+def test_actor_type_anonymous_is_viewer():
+    repo = AnonymousRepoFactory()
+    request = SimpleNamespace(user=SimpleNamespace(is_authenticated=False))
+    assert _get_actor_type(request, repo) == "viewer"
 
 
 @pytest.fixture

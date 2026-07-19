@@ -36,12 +36,11 @@ def get_repo_or_404(anonymous_id):
 
 
 def _get_actor_type(request, repo):
-    """Determine the actor type based on the request user."""
-    if hasattr(request, "user") and request.user.is_authenticated:
-        if request.user == repo.owner:
-            return "owner"
-        return "non_owner"
-    return "anonymous"
+    """Determine the actor type. A logged-in non-owner is treated identically
+    to an anonymous visitor ("viewer") so reviewer identity is never recorded."""
+    if hasattr(request, "user") and request.user.is_authenticated and request.user == repo.owner:
+        return "owner"
+    return "viewer"
 
 
 def log_access(repo, action, request):

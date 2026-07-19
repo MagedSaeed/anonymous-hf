@@ -1,6 +1,9 @@
 from django.contrib import admin
+from django.template.response import TemplateResponse
+from django.urls import path
 from django.utils.html import format_html
 
+from anonymizer.analytics import aggregate_dashboard_stats
 from anonymizer.models import ActivityLog, AnonymousRepo
 
 
@@ -21,12 +24,11 @@ class AnonymousRepoAdmin(admin.ModelAdmin):
         "colored_status",
         "owner",
         "expires_at",
-        "view_count",
         "created_at",
     )
     list_filter = ("repo_type", "status", "created_at", "expires_at")
     search_fields = ("anonymous_id", "original_url", "owner__email", "owner__hf_username")
-    readonly_fields = ("anonymous_id", "created_at", "updated_at", "view_count", "access_count")
+    readonly_fields = ("anonymous_id", "created_at", "updated_at")
     inlines = [ActivityLogInline]
     actions = ["extend_expiry_30_days", "mark_as_deleted"]
 
@@ -68,3 +70,29 @@ class ActivityLogAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+def analytics_dashboard_view(request):
+    context = {
+        **admin.site.each_context(request),
+        "title": "Analytics Dashboard",
+        "stats": aggregate_dashboard_stats(),
+    }
+    return TemplateResponse(request, "admin/analytics_dashboard.html", context)
+
+
+_original_admin_get_urls = admin.site.get_urls
+
+
+def _admin_get_urls_with_analytics():
+    custom = [
+        path(
+            "analytics/",
+            admin.site.admin_view(analytics_dashboard_view),
+            name="analytics_dashboard",
+        ),
+    ]
+    return custom + _original_admin_get_urls()
+
+
+admin.site.get_urls = _admin_get_urls_with_analytics

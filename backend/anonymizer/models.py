@@ -33,8 +33,6 @@ class AnonymousRepo(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     expires_at = models.DateTimeField()
-    view_count = models.PositiveIntegerField(default=0)
-    access_count = models.PositiveIntegerField(default=0)
 
     # Optional colab notebook link
     colab_url = models.URLField(max_length=500, blank=True, default="")
@@ -99,8 +97,7 @@ class ActivityLog(models.Model):
         ("restored", "Restored"),
     ]
     ACTOR_TYPE_CHOICES = [
-        ("anonymous", "Anonymous"),
-        ("non_owner", "Authenticated Non-Owner"),
+        ("viewer", "Viewer"),
         ("owner", "Owner"),
     ]
 
@@ -108,7 +105,7 @@ class ActivityLog(models.Model):
         AnonymousRepo, on_delete=models.CASCADE, related_name="activity_logs"
     )
     action = models.CharField(max_length=20, choices=ACTION_CHOICES)
-    actor_type = models.CharField(max_length=10, choices=ACTOR_TYPE_CHOICES, default="anonymous")
+    actor_type = models.CharField(max_length=10, choices=ACTOR_TYPE_CHOICES, default="viewer")
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
