@@ -61,3 +61,10 @@ server {
     gzip_types text/plain text/css application/json application/javascript text/xml;
     gzip_min_length 1000;
 }
+
+# Redirect the Railway domain to the custom domain.
+server {
+    listen 80;
+    server_name anonymous-hf.up.railway.app;
+    return 301 https://anonymous-hf.com$request_uri;
+}
