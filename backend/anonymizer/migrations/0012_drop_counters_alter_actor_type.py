@@ -4,23 +4,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('anonymizer', '0011_remove_allow_download'),
+        ("anonymizer", "0011_remove_allow_download"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='anonymousrepo',
-            name='access_count',
+            model_name="anonymousrepo",
+            name="access_count",
         ),
         migrations.RemoveField(
-            model_name='anonymousrepo',
-            name='view_count',
+            model_name="anonymousrepo",
+            name="view_count",
         ),
         migrations.AlterField(
-            model_name='activitylog',
-            name='actor_type',
-            field=models.CharField(choices=[('viewer', 'Viewer'), ('owner', 'Owner')], default='viewer', max_length=10),
+            model_name="activitylog",
+            name="actor_type",
+            field=models.CharField(
+                choices=[("viewer", "Viewer"), ("owner", "Owner")], default="viewer", max_length=10
+            ),
         ),
     ]
