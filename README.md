@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![Live Demo](https://img.shields.io/badge/live-anonymous--hf.up.railway.app-success.svg?logo=railway&logoColor=white)](https://anonymous-hf.up.railway.app/app)
+[![Live Demo](https://img.shields.io/badge/live-anonymous--hf.com-success.svg?logo=railway&logoColor=white)](https://anonymous-hf.com/app)
 [![CI](https://github.com/MagedSaeed/anonymous-hf/actions/workflows/ci.yml/badge.svg)](https://github.com/MagedSaeed/anonymous-hf/actions/workflows/ci.yml)
 [![Hugging Face](https://img.shields.io/badge/Hugging%20Face-Models%20%26%20Datasets-FFD21E.svg?logo=huggingface&logoColor=black)](https://huggingface.co/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -18,7 +18,7 @@
 
 An anonymizing service for HuggingFace repositories (models & datasets) that lets authors share their work **anonymously** — without revealing their identity — with any visitor (e.g., double-blind peer reviewers, journal editors, blog readers). Authors submit a HuggingFace branch URL; the service returns an anonymous link that streams files from HuggingFace through this service, hiding the repo ownership.
 
-**Try it now → [anonymous-hf.up.railway.app/app](https://anonymous-hf.up.railway.app/app)**
+**Try it now → [anonymous-hf.com/app](https://anonymous-hf.com/app)**
 
 > Originally built for academic peer review, where revealing the author's HuggingFace handle would break anonymity, but useful any time you want to share a private HuggingFace repo. HuggingFace repos [visibility is only public or private](https://huggingface.co/docs/hub/repositories-settings#repository-visibility): *public* (anyone can find and clone it) or *private* (everyone except the owner gets `404 - Repo not found`). Protected/link-shared visibility only exists for **Spaces**, and only on PRO/Team/Enterprise plans. There's no built-in way to grant specific outside viewers anonymous, read-only view to a private model or dataset.
 
@@ -97,13 +97,13 @@ The original HuggingFace URL is **never exposed** to visitors. Files are streame
 
 A common reviewer comment is *"the paper claims X, but I can't reproduce it without available code/dataset,"* or *"the model and dataset are not publicly available to experiment with."* The optional **Colab link** on each repo allows you to attach a notebook that loads files directly from the anonymous URL, tailored to the specific dataset/model setup, so visitors can run your model and interact with it while maintaining double-blind anonymity.
 
-**1) As the author** — push a fine-tuned model or a dataset to a HuggingFace branch, submit the branch URL here, and you'll get a shareable viewer URL like `https://anonymous-hf.up.railway.app/a/{id}/`.
+**1) As the author** — push a fine-tuned model or a dataset to a HuggingFace branch, submit the branch URL here, and you'll get a shareable viewer URL like `https://anonymous-hf.com/a/{id}/`.
 
 **2) [Optional]: Create a Colab notebook** that pulls the repo from the matching API endpoint (`/api/a/{id}/download/`) and loads it with the standard HuggingFace tooling — three lines for a dataset, four for a model:
 
 ```python
 # Download the repository
-!wget "https://anonymous-hf.up.railway.app/api/a/{id}/download/" -O repo.zip
+!wget "https://anonymous-hf.com/api/a/{id}/download/" -O repo.zip
 !unzip repo.zip -d anonymous_repo
 
 # Load it like any local HF dataset
