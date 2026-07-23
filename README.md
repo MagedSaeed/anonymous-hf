@@ -5,7 +5,7 @@
 [![Live Demo](https://img.shields.io/badge/live-anonymous--hf.com-success.svg?logo=railway&logoColor=white)](https://anonymous-hf.com/app)
 [![CI](https://github.com/MagedSaeed/anonymous-hf/actions/workflows/ci.yml/badge.svg)](https://github.com/MagedSaeed/anonymous-hf/actions/workflows/ci.yml)
 [![Hugging Face](https://img.shields.io/badge/Hugging%20Face-Models%20%26%20Datasets-FFD21E.svg?logo=huggingface&logoColor=black)](https://huggingface.co/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/)
 [![Django 6.0](https://img.shields.io/badge/django-6.0-092E20.svg?logo=django&logoColor=white)](https://www.djangoproject.com/)
 [![Node 20+](https://img.shields.io/badge/node-20%2B-339933.svg?logo=node.js&logoColor=white)](https://nodejs.org/)
