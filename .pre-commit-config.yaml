@@ -1,0 +1,28 @@
+# Mirrors the CI "Lint & Format" job (.github/workflows/ci.yml) using the
+# project's own tools, so passing here means that CI gate passes. Tests and
+# docker builds stay in CI. Enable with: cd backend && uv run pre-commit install
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check (backend)
+        entry: bash -c 'cd backend && uv run ruff check --fix .'
+        language: system
+        types: [python]
+        files: ^backend/
+        pass_filenames: false
+
+      - id: ruff-format
+        name: ruff format (backend)
+        entry: bash -c 'cd backend && uv run ruff format .'
+        language: system
+        types: [python]
+        files: ^backend/
+        pass_filenames: false
+
+      - id: tsc
+        name: tsc --noEmit (frontend)
+        entry: bash -c 'cd frontend && npx tsc --noEmit'
+        language: system
+        files: ^frontend/.*\.(ts|tsx)$
+        pass_filenames: false
