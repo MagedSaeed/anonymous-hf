@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import RepoCard from '../../components/RepoCard/RepoCard'
+import GitHubStarNudge from '../../components/GitHubStarNudge/GitHubStarNudge'
+import { useGitHubStarNudge } from '../../components/GitHubStarNudge/useGitHubStarNudge'
 import type { AnonymousRepo, PaginatedResponse } from '../../types'
 
 export default function DashboardPage() {
@@ -10,6 +12,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState<string>('')
+  const starNudge = useGitHubStarNudge()
 
   useEffect(() => {
     const fetchRepos = async () => {
@@ -39,6 +42,9 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
+      {starNudge.visible && (
+        <GitHubStarNudge onClose={starNudge.close} onGoToRepo={starNudge.goToRepo} />
+      )}
       <div className="flex items-center justify-between gap-3 mb-6">
         <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">My Repositories</h1>
         <Link to="/app/create" className="btn-primary shrink-0">
