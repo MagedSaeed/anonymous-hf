@@ -28,7 +28,7 @@ export default function GitHubStarNudge({ onClose, onGoToRepo }: GitHubStarNudge
             ⭐ Enjoying Anonymous HuggingFace?
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            If you find this project useful, consider giving it a star on GitHub — it shows your
+            If you find this project useful, consider giving it a star on GitHub. This shows your
             trust and helps others discover it too.
           </p>
           <label className="mt-4 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 select-none cursor-pointer">
