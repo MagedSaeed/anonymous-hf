@@ -1,5 +1,7 @@
 # Anonymous HuggingFace
 
+<div align="center">
+
 [![Live Demo](https://img.shields.io/badge/live-anonymous--hf.up.railway.app-success.svg?logo=railway&logoColor=white)](https://anonymous-hf.up.railway.app/app)
 [![CI](https://github.com/MagedSaeed/anonymous-hf/actions/workflows/ci.yml/badge.svg)](https://github.com/MagedSaeed/anonymous-hf/actions/workflows/ci.yml)
 [![Hugging Face](https://img.shields.io/badge/Hugging%20Face-Models%20%26%20Datasets-FFD21E.svg?logo=huggingface&logoColor=black)](https://huggingface.co/)
@@ -11,6 +13,8 @@
 [![TypeScript](https://img.shields.io/badge/typescript-5.9-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Ruff](https://img.shields.io/badge/code%20style-ruff-D7FF64.svg)](https://docs.astral.sh/ruff/)
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg?logo=docker&logoColor=white)](docker-compose.yml)
+
+</div>
 
 An anonymizing service for HuggingFace repositories (models & datasets) that lets authors share their work **anonymously** — without revealing their identity — with any visitor (e.g., double-blind peer reviewers, journal editors, blog readers). Authors submit a HuggingFace branch URL; the service returns an anonymous link that streams files from HuggingFace through this service, hiding the repo ownership.
 
