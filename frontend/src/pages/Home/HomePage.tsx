@@ -15,9 +15,9 @@ export default function HomePage() {
           Anonymous HuggingFace
         </h1>
         <p className="text-base sm:text-lg text-slate-500 dark:text-slate-400 max-w-lg mx-auto mb-8 leading-relaxed">
-          Share your datasets and models anonymously for double-blind peer
-          review. Create a proxy URL that hides your identity while giving
-          reviewers full access.
+          Share datasets and models anonymously. Create an
+          anonymous URL that hides the owner and repo name while giving viewers
+          read-only access and streaming downloads.
         </p>
 
         {loading ? (
@@ -96,10 +96,10 @@ export default function HomePage() {
               1
             </div>
             <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-1">
-              Anonymize Your Repo
+              Anonymize the Repo
             </h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-              Create a branch in your HuggingFace repo with identifying
+              Create a branch in the HuggingFace repo with identifying
               information removed.
             </p>
           </div>
@@ -111,8 +111,7 @@ export default function HomePage() {
               Submit the URL
             </h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-              Paste your branch URL here and get an anonymous proxy link
-              instantly.
+              Paste the branch URL here and get an anonymous link back.
             </p>
           </div>
           <div className="text-center">
@@ -123,8 +122,8 @@ export default function HomePage() {
               Share
             </h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-              Give the anonymous URL to visitors & reviewers.
-              They see your content anonymously.
+              Send the anonymous URL to viewers. They browse and download the
+              content while the repo identity stays hidden.
             </p>
           </div>
         </div>
