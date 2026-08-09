@@ -1,3 +1,4 @@
+import requests
 import responses
 
 from anonymizer.services.huggingface_client import (
@@ -135,3 +136,38 @@ def test_build_resolve_url_model():
 def test_build_resolve_url_no_path():
     url = build_resolve_url("user/repo", "dataset", "anon-branch")
     assert url == "https://huggingface.co/datasets/user/repo/resolve/anon-branch"
+
+
+class TestPathTraversalRejection:
+    """A reviewer-supplied path must never escape the pinned repo/branch prefix."""
+
+    def test_build_resolve_url_rejects_parent_segment(self):
+        assert build_resolve_url("user/repo", "dataset", "main", "../../..") is None
+
+    def test_build_resolve_url_rejects_parent_segment_mid_path(self):
+        assert build_resolve_url("user/repo", "dataset", "main", "data/../../../etc") is None
+
+    def test_build_resolve_url_neutralises_encoded_parent_segment(self):
+        # requests unquotes %2e to "." when preparing; HF then normalises the
+        # dots server-side. Assert on the URL that actually goes on the wire.
+        url = build_resolve_url("user/repo", "dataset", "main", "%2e%2e/%2e%2e")
+        sent = requests.Request("GET", url).prepare().url
+        assert ".." not in sent
+
+    def test_build_resolve_url_rejects_parent_segment_in_branch(self):
+        assert build_resolve_url("user/repo", "dataset", "../..", "README.md") is None
+
+    def test_build_resolve_url_keeps_nested_paths(self):
+        url = build_resolve_url("user/repo", "dataset", "main", "data/train/part-01.csv")
+        assert url == (
+            "https://huggingface.co/datasets/user/repo/resolve/main/data/train/part-01.csv"
+        )
+
+    def test_build_resolve_url_keeps_branch_with_slash(self):
+        url = build_resolve_url("user/repo", "model", "refs/pr/1", "config.json")
+        assert url == "https://huggingface.co/user/repo/resolve/refs/pr/1/config.json"
+
+    @responses.activate
+    def test_get_tree_rejects_parent_segment_without_calling_hf(self):
+        assert get_tree("user/repo", "dataset", "main", "../..") is None
+        assert len(responses.calls) == 0

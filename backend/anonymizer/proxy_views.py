@@ -68,6 +68,9 @@ class ProxyFileView(View):
             return HttpResponse("Invalid repository configuration", status=500)
 
         hf_url = build_resolve_url(repo_id, repo.repo_type, repo.branch, file_path)
+        if hf_url is None:
+            raise Http404("File not found")
+
         token = get_hf_token(repo)
 
         headers = {}
@@ -236,6 +239,9 @@ class ProxyDownloadView(View):
 
         for file_entry in files:
             hf_url = build_resolve_url(repo_id, repo_type, branch, file_entry["path"])
+            if hf_url is None:
+                continue
+
             headers = {}
             if token:
                 headers["Authorization"] = f"Bearer {token}"

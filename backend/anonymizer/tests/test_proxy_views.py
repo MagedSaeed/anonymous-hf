@@ -273,3 +273,32 @@ class TestProxyDownloadView:
         assert resp.status_code == 200
         assert resp["Content-Type"] == "application/zip"
         assert "attachment" in resp["Content-Disposition"]
+
+
+@pytest.mark.django_db
+class TestProxyPathTraversal:
+    """Regression: a viewer must not be able to walk out of the anonymised repo."""
+
+    @responses.activate
+    def test_resolve_rejects_literal_parent_segments(self, client, active_repo):
+        resp = client.get(f"/api/a/{active_repo.anonymous_id}/resolve/../../..")
+        assert resp.status_code == 404
+        assert len(responses.calls) == 0
+
+    @responses.activate
+    def test_resolve_rejects_encoded_parent_segments(self, client, active_repo):
+        resp = client.get(f"/api/a/{active_repo.anonymous_id}/resolve/%2e%2e/%2e%2e/%2e%2e")
+        assert resp.status_code == 404
+        assert len(responses.calls) == 0
+
+    @responses.activate
+    def test_tree_rejects_literal_parent_segments(self, client, active_repo):
+        resp = client.get(f"/api/a/{active_repo.anonymous_id}/tree/../..")
+        assert resp.status_code == 404
+        assert len(responses.calls) == 0
+
+    @responses.activate
+    def test_tree_rejects_encoded_parent_segments(self, client, active_repo):
+        resp = client.get(f"/api/a/{active_repo.anonymous_id}/tree/%2e%2e/%2e%2e")
+        assert resp.status_code == 404
+        assert len(responses.calls) == 0

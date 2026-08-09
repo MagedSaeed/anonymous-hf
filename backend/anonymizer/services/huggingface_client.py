@@ -1,9 +1,28 @@
 import re
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
 import requests
 
 HF_API_BASE = "https://huggingface.co/api"
+
+
+def _safe_repo_path(path):
+    """Percent-encode a user-supplied path for use in a HuggingFace URL.
+
+    Returns None if the path tries to escape the repo via a ".." segment.
+    Both steps matter: quote() leaves ".." untouched, while the ".." check
+    alone would miss encoded forms like %2e%2e that requests later unquotes.
+    """
+    if not path:
+        return ""
+    segments = []
+    for segment in path.split("/"):
+        if segment in ("", "."):
+            continue
+        if segment == "..":
+            return None
+        segments.append(quote(segment, safe=""))
+    return "/".join(segments)
 
 
 def parse_hf_url(url):
@@ -88,14 +107,18 @@ def get_repo_info(repo_id, repo_type="dataset", token=None):
 
 
 def get_tree(repo_id, repo_type="dataset", branch="main", path="", token=None):
-    """Get the file tree for a HuggingFace repo."""
-    if repo_type == "dataset":
-        api_url = f"{HF_API_BASE}/datasets/{repo_id}/tree/{branch}"
-    else:
-        api_url = f"{HF_API_BASE}/models/{repo_id}/tree/{branch}"
+    """Get the file tree for a HuggingFace repo. None if the path escapes the repo."""
+    safe_repo = _safe_repo_path(repo_id)
+    safe_branch = _safe_repo_path(branch)
+    safe_path = _safe_repo_path(path)
+    if not safe_repo or not safe_branch or safe_path is None:
+        return None
 
-    if path:
-        api_url = f"{api_url}/{path}"
+    api_type = "datasets" if repo_type == "dataset" else "models"
+    api_url = f"{HF_API_BASE}/{api_type}/{safe_repo}/tree/{safe_branch}"
+
+    if safe_path:
+        api_url = f"{api_url}/{safe_path}"
 
     headers = {}
     if token:
@@ -111,13 +134,19 @@ def get_tree(repo_id, repo_type="dataset", branch="main", path="", token=None):
 
 
 def build_resolve_url(repo_id, repo_type="dataset", branch="main", file_path=""):
-    """Build the HuggingFace resolve URL for downloading a file."""
+    """Build the HuggingFace resolve URL for a file. None if it escapes the repo."""
+    safe_repo = _safe_repo_path(repo_id)
+    safe_branch = _safe_repo_path(branch)
+    safe_file = _safe_repo_path(file_path)
+    if not safe_repo or not safe_branch or safe_file is None:
+        return None
+
     if repo_type == "dataset":
-        base = f"https://huggingface.co/datasets/{repo_id}/resolve/{branch}"
+        base = f"https://huggingface.co/datasets/{safe_repo}/resolve/{safe_branch}"
     else:
-        base = f"https://huggingface.co/{repo_id}/resolve/{branch}"
-    if file_path:
-        return f"{base}/{file_path}"
+        base = f"https://huggingface.co/{safe_repo}/resolve/{safe_branch}"
+    if safe_file:
+        return f"{base}/{safe_file}"
     return base
 
 
