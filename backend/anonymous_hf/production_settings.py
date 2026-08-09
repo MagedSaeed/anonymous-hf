@@ -10,6 +10,9 @@ from .settings import *  # noqa: F401, F403
 
 DEBUG = False
 
+# a missing key must crash at startup
+SECRET_KEY = config("SECRET_KEY")
+
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv())
 
 # Database - PostgreSQL
