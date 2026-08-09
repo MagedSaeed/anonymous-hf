@@ -3,10 +3,24 @@ from rest_framework import serializers
 
 from anonymizer.models import ActivityLog, AnonymousRepo
 from anonymizer.services.huggingface_client import (
+    check_repo_access,
     parse_hf_url,
     validate_colab_url,
     validate_hf_url,
 )
+
+# "unknown" is absent on purpose: an HF outage must not block creation.
+UNKNOWN_CHECK_MESSAGE = "Could not reach HuggingFace to verify this repository."
+# HF answers 401 for missing *and* private repos alike, so "no_access" must
+# cover both -- a typo is the far more common cause.
+REPO_CHECK_MESSAGES = {
+    "not_found": "That repository or branch was not found on HuggingFace. Please double check the repo name.",
+    "no_access": (
+        "Could not find or access that repository. Please double check the name and revision. "
+        "If it is private, add a HuggingFace API token in Settings, or grant the "
+        "app access to the organisation."
+    ),
+}
 
 
 class AnonymousRepoSerializer(serializers.ModelSerializer):
@@ -108,6 +122,19 @@ class CreateRepoSerializer(serializers.Serializer):
         if not is_valid:
             raise serializers.ValidationError(error)
         return value
+
+    def validate(self, attrs):
+        user = self.context["request"].user
+        parsed = parse_hf_url(attrs["original_url"])
+        status = check_repo_access(
+            parsed.get("repo_id", ""),
+            parsed.get("repo_type", "dataset"),
+            attrs.get("branch", "main"),
+            user.hf_api_token,
+        )
+        if status in REPO_CHECK_MESSAGES:
+            raise serializers.ValidationError({"original_url": REPO_CHECK_MESSAGES[status]})
+        return attrs
 
     def create(self, validated_data):
         user = self.context["request"].user

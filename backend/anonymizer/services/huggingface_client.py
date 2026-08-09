@@ -71,12 +71,15 @@ def parse_hf_url(url):
     return {}
 
 
-def validate_repo_exists(repo_id, repo_type="dataset", branch="main", token=None):
-    """Check if a HuggingFace repo and branch exist."""
-    if repo_type == "dataset":
-        api_url = f"{HF_API_BASE}/datasets/{repo_id}/tree/{branch}"
-    else:
-        api_url = f"{HF_API_BASE}/models/{repo_id}/tree/{branch}"
+def check_repo_access(repo_id, repo_type="dataset", branch="main", token=None):
+    """Returns "ok", "not_found", "no_access", or "unknown" (HF unreachable)."""
+    safe_repo = _safe_repo_path(repo_id)
+    safe_branch = _safe_repo_path(branch)
+    if not safe_repo or not safe_branch:
+        return "not_found"
+
+    api_type = "datasets" if repo_type == "dataset" else "models"
+    api_url = f"{HF_API_BASE}/{api_type}/{safe_repo}/tree/{safe_branch}"
 
     headers = {}
     if token:
@@ -84,9 +87,16 @@ def validate_repo_exists(repo_id, repo_type="dataset", branch="main", token=None
 
     try:
         resp = requests.get(api_url, headers=headers, timeout=10)
-        return resp.status_code == 200
     except requests.RequestException:
-        return False
+        return "unknown"
+
+    if resp.status_code == 200:
+        return "ok"
+    if resp.status_code == 404:
+        return "not_found"
+    if resp.status_code in (401, 403):
+        return "no_access"
+    return "unknown"
 
 
 def get_repo_info(repo_id, repo_type="dataset", token=None):

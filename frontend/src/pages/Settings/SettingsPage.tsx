@@ -272,7 +272,7 @@ export default function SettingsPage() {
               >
                 huggingface.co/settings/tokens
               </a>
-              . Required so the proxy can access your repositories on behalf of anonymous reviewers.
+              . Required so the proxy can access your repositories on behalf of anonymous viewers.
             </p>
             {tokenMessage && (
               <p
@@ -341,7 +341,7 @@ export default function SettingsPage() {
       {showRemoveTokenConfirm && (
         <ConfirmDialog
           title="Remove API Token"
-          message="Without a personal API token, reviewers won't be able to access your repositories through the proxy. Are you sure you want to remove it?"
+          message="Without a personal API token, viewers won't be able to access your repositories through the proxy. Are you sure you want to remove it?"
           confirmLabel="Remove Token"
           danger
           onConfirm={() => {
@@ -355,7 +355,7 @@ export default function SettingsPage() {
       {showDeleteConfirm && (
         <ConfirmDialog
           title="Delete Account"
-          message="This permanently deletes your account, every anonymous repository you created, and the HuggingFace token stored here. Reviewers will lose access immediately and the links cannot be restored. Remember to revoke this app's token at huggingface.co/settings/tokens."
+          message="This permanently deletes your account, every anonymous repository you created, and the HuggingFace token stored here. Viewers will lose access immediately and the links cannot be restored. Remember to revoke this app's token at huggingface.co/settings/tokens."
           confirmLabel="Delete My Account"
           danger
           onConfirm={handleDeleteAccount}

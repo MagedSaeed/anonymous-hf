@@ -297,7 +297,7 @@ export default function RepoDetailsPage() {
                 HuggingFace API token not configured
               </p>
               <p className="text-xs text-amber-700 dark:text-amber-400 mt-1 leading-relaxed">
-                Reviewers won't be able to access this repository without a personal API token. Add one in{' '}
+                Viewers won't be able to access this repository without a personal API token. Add one in{' '}
                 <Link
                   to="/app/settings"
                   className="underline font-medium hover:text-amber-900 dark:hover:text-amber-200"
@@ -391,6 +391,11 @@ export default function RepoDetailsPage() {
           </div>
           <div>
             <p className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide mb-0.5">Colab Notebook</p>
+            <p className="text-xs text-amber-600 dark:text-amber-400 mb-1.5 leading-relaxed font-medium">
+              Important: the link itself can identify you &mdash; a URL like
+              colab.research.google.com/github/<span className="font-mono">your-username</span>/... reveals
+              your GitHub account. Check the notebook contents too. This is your responsibility.
+            </p>
             <div className="flex flex-col sm:flex-row gap-1.5 mt-1">
               <input
                 type="url"
@@ -419,10 +424,7 @@ export default function RepoDetailsPage() {
               </div>
             </div>
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-              {repo.colab_url ? 'Linked Colab notebook shown to reviewers.' : 'Optional: link a Colab notebook for reviewers.'}
-            </p>
-            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 leading-relaxed font-medium">
-              Ensure your notebook does not contain identity-revealing details. This is your responsibility.
+              {repo.colab_url ? 'Linked Colab notebook shown to viewers.' : 'Optional: link a Colab notebook for viewers.'}
             </p>
           </div>
           <div>
@@ -664,7 +666,7 @@ export default function RepoDetailsPage() {
       {showExpireConfirm && (
         <ConfirmDialog
           title="Expire Repository"
-          message="This will immediately expire the anonymous URL. Reviewers will no longer be able to access the repository contents and the original identity will be revealed. You can extend the expiry later to reactivate it."
+          message="This will immediately expire the anonymous URL. Viewers will no longer be able to access the repository contents and the original identity will be revealed. You can extend the expiry later to reactivate it."
           confirmLabel="Expire Now"
           danger
           onConfirm={handleExpire}

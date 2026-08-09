@@ -8,14 +8,19 @@ from rest_framework.views import APIView
 from anonymizer.models import ActivityLog, AnonymousRepo
 from anonymizer.permissions import IsOwner
 from anonymizer.serializers import (
+    REPO_CHECK_MESSAGES,
+    UNKNOWN_CHECK_MESSAGE,
     ActivityLogSerializer,
     AnonymousRepoSerializer,
     CreateRepoSerializer,
 )
 from anonymizer.services.huggingface_client import (
+    check_repo_access,
     get_file_content,
     get_latest_commit,
     list_user_repos,
+    parse_hf_url,
+    validate_hf_url,
 )
 from anonymizer.services.identity_scan import scan_for_identity
 
@@ -190,6 +195,36 @@ class ActivityLogListView(generics.ListAPIView):
         elif actor_type in ("viewer", "owner"):
             qs = qs.filter(actor_type=actor_type)
         return qs
+
+
+class HFRepoCheckView(APIView):
+    """Live feedback while the user types a repo URL, before they submit."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        url = request.query_params.get("url", "")
+        branch = request.query_params.get("branch") or "main"
+
+        is_valid, error = validate_hf_url(url)
+        if not is_valid:
+            return Response({"status": "invalid_url", "message": error})
+
+        parsed = parse_hf_url(url)
+        repo_status = check_repo_access(
+            parsed.get("repo_id", ""),
+            parsed.get("repo_type", "dataset"),
+            branch,
+            request.user.hf_api_token,
+        )
+        return Response(
+            {
+                "status": repo_status,
+                "message": REPO_CHECK_MESSAGES.get(repo_status, UNKNOWN_CHECK_MESSAGE)
+                if repo_status != "ok"
+                else "",
+            }
+        )
 
 
 class HFRepoListView(APIView):

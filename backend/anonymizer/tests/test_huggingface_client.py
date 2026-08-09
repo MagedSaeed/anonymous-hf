@@ -3,11 +3,11 @@ import responses
 
 from anonymizer.services.huggingface_client import (
     build_resolve_url,
+    check_repo_access,
     get_repo_info,
     get_tree,
     parse_hf_url,
     validate_hf_url,
-    validate_repo_exists,
 )
 
 
@@ -58,28 +58,6 @@ class TestValidateHfUrl:
         is_valid, error = validate_hf_url("https://github.com/user/repo")
         assert not is_valid
         assert "HuggingFace" in error
-
-
-@responses.activate
-def test_validate_repo_exists_true():
-    responses.add(
-        responses.GET,
-        "https://huggingface.co/api/datasets/user/repo/tree/main",
-        json=[{"type": "file", "path": "README.md"}],
-        status=200,
-    )
-    assert validate_repo_exists("user/repo", "dataset", "main") is True
-
-
-@responses.activate
-def test_validate_repo_exists_false():
-    responses.add(
-        responses.GET,
-        "https://huggingface.co/api/datasets/user/repo/tree/main",
-        json={"error": "Not found"},
-        status=404,
-    )
-    assert validate_repo_exists("user/repo", "dataset", "main") is False
 
 
 @responses.activate
@@ -191,3 +169,44 @@ class TestParseHfShortDomain:
 
     def test_substring_in_path_rejected(self):
         assert parse_hf_url("https://evil.com/huggingface.co/user/repo") == {}
+
+
+class TestCheckRepoAccess:
+    """Distinguishes 'missing', 'not visible to you', and 'could not check'."""
+
+    URL = "https://huggingface.co/api/datasets/user/repo/tree/main"
+
+    @responses.activate
+    def test_ok_when_found(self):
+        responses.add(responses.GET, self.URL, json=[], status=200)
+        assert check_repo_access("user/repo", "dataset", "main") == "ok"
+
+    @responses.activate
+    def test_not_found_on_404(self):
+        responses.add(responses.GET, self.URL, status=404)
+        assert check_repo_access("user/repo", "dataset", "main") == "not_found"
+
+    @responses.activate
+    def test_no_access_on_401(self):
+        responses.add(responses.GET, self.URL, status=401)
+        assert check_repo_access("user/repo", "dataset", "main") == "no_access"
+
+    @responses.activate
+    def test_no_access_on_403(self):
+        responses.add(responses.GET, self.URL, status=403)
+        assert check_repo_access("user/repo", "dataset", "main") == "no_access"
+
+    @responses.activate
+    def test_unknown_on_server_error(self):
+        responses.add(responses.GET, self.URL, status=500)
+        assert check_repo_access("user/repo", "dataset", "main") == "unknown"
+
+    @responses.activate
+    def test_unknown_on_network_failure(self):
+        responses.add(responses.GET, self.URL, body=requests.RequestException("boom"))
+        assert check_repo_access("user/repo", "dataset", "main") == "unknown"
+
+    @responses.activate
+    def test_traversal_never_reaches_huggingface(self):
+        assert check_repo_access("user/repo", "dataset", "../..") == "not_found"
+        assert len(responses.calls) == 0

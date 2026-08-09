@@ -48,7 +48,7 @@ export default function HomePage() {
                     >
                       Settings
                     </Link>{' '}
-                    so the proxy can access your repositories for reviewers.
+                    so the proxy can access your repositories for viewers.
                   </p>
                 </div>
               </div>

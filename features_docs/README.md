@@ -111,7 +111,7 @@ Provide anonymous access to HuggingFace repositories for double-blind academic r
 2. User submits branch URL to platform
 3. Platform generates anonymous URL
 4. Platform proxies requests to HuggingFace branch
-5. Reviewers access content via anonymous URL
+5. Viewers access content via anonymous URL
 
 ### Key Principles
 - **Proxy-based**: Platform doesn't store files, just proxies to HuggingFace

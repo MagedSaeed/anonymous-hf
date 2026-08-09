@@ -86,7 +86,20 @@ class TestRepoListCreateView:
         assert len(results) == 1
         assert results[0]["repo_type"] == "model"
 
+    @responses.activate
     def test_create_repo(self, authenticated_client, user):
+        responses.add(
+            responses.GET,
+            "https://huggingface.co/api/datasets/myuser/myrepo/tree/anon-branch",
+            json=[],
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            "https://huggingface.co/datasets/myuser/myrepo/resolve/anon-branch/README.md",
+            body=b"# hi",
+            status=200,
+        )
         resp = authenticated_client.post(
             "/api/repos/",
             data={
@@ -103,7 +116,20 @@ class TestRepoListCreateView:
         assert len(data["anonymous_id"]) == 12
         assert AnonymousRepo.objects.filter(owner=user).count() == 1
 
+    @responses.activate
     def test_create_repo_default_branch(self, authenticated_client):
+        responses.add(
+            responses.GET,
+            "https://huggingface.co/api/datasets/myuser/myrepo/tree/main",
+            json=[],
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            "https://huggingface.co/datasets/myuser/myrepo/resolve/main/README.md",
+            body=b"# hi",
+            status=200,
+        )
         resp = authenticated_client.post(
             "/api/repos/",
             data={"original_url": "https://huggingface.co/datasets/myuser/myrepo"},
@@ -120,7 +146,20 @@ class TestRepoListCreateView:
         )
         assert resp.status_code == 400
 
+    @responses.activate
     def test_create_repo_detects_model_type(self, authenticated_client):
+        responses.add(
+            responses.GET,
+            "https://huggingface.co/api/models/myuser/mymodel/tree/main",
+            json=[],
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            "https://huggingface.co/myuser/mymodel/resolve/main/README.md",
+            body=b"# hi",
+            status=200,
+        )
         resp = authenticated_client.post(
             "/api/repos/",
             data={"original_url": "https://huggingface.co/myuser/mymodel"},
@@ -414,3 +453,87 @@ class TestRepoUpdateValidation:
             content_type="application/json",
         )
         assert r.status_code == 400
+
+
+@pytest.mark.django_db
+class TestHFRepoCheckView:
+    """Live feedback while the user is entering a repo."""
+
+    TREE = "https://huggingface.co/api/datasets/user/repo/tree/main"
+
+    def _check(self, client, url="https://huggingface.co/datasets/user/repo", branch="main"):
+        return client.get("/api/hf-repo-check/", {"url": url, "branch": branch})
+
+    def test_requires_auth(self):
+        assert Client().get("/api/hf-repo-check/").status_code == 403
+
+    @responses.activate
+    def test_ok_for_reachable_repo(self, authenticated_client):
+        responses.add(responses.GET, self.TREE, json=[], status=200)
+        resp = self._check(authenticated_client)
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "ok"
+
+    @responses.activate
+    def test_not_found_has_a_message(self, authenticated_client):
+        responses.add(responses.GET, self.TREE, status=404)
+        data = self._check(authenticated_client).json()
+        assert data["status"] == "not_found"
+        assert data["message"]
+
+    @responses.activate
+    def test_no_access_mentions_the_token(self, authenticated_client):
+        responses.add(responses.GET, self.TREE, status=403)
+        data = self._check(authenticated_client).json()
+        assert data["status"] == "no_access"
+        assert "token" in data["message"].lower()
+
+    @responses.activate
+    def test_unknown_when_huggingface_is_down(self, authenticated_client):
+        responses.add(responses.GET, self.TREE, body=requests.RequestException("boom"))
+        assert self._check(authenticated_client).json()["status"] == "unknown"
+
+    def test_invalid_url_is_reported(self, authenticated_client):
+        data = self._check(authenticated_client, url="https://evil.example.com/a/b").json()
+        assert data["status"] == "invalid_url"
+
+
+@pytest.mark.django_db
+class TestCreateRepoExistenceCheck:
+    """A definite 'no' from HuggingFace blocks creation; uncertainty does not."""
+
+    TREE = "https://huggingface.co/api/datasets/myuser/myrepo/tree/main"
+    README = "https://huggingface.co/datasets/myuser/myrepo/resolve/main/README.md"
+
+    def _create(self, client):
+        return client.post(
+            "/api/repos/",
+            data={"original_url": "https://huggingface.co/datasets/myuser/myrepo"},
+            content_type="application/json",
+        )
+
+    @responses.activate
+    def test_blocked_when_repo_does_not_exist(self, authenticated_client):
+        responses.add(responses.GET, self.TREE, status=404)
+        resp = self._create(authenticated_client)
+        assert resp.status_code == 400
+        assert AnonymousRepo.objects.count() == 0
+
+    @responses.activate
+    def test_blocked_when_not_accessible(self, authenticated_client):
+        responses.add(responses.GET, self.TREE, status=403)
+        assert self._create(authenticated_client).status_code == 400
+        assert AnonymousRepo.objects.count() == 0
+
+    @responses.activate
+    def test_allowed_when_huggingface_is_unreachable(self, authenticated_client):
+        responses.add(responses.GET, self.TREE, body=requests.RequestException("boom"))
+        responses.add(responses.GET, self.README, body=b"# hi", status=200)
+        assert self._create(authenticated_client).status_code == 201
+        assert AnonymousRepo.objects.count() == 1
+
+    @responses.activate
+    def test_allowed_when_repo_exists(self, authenticated_client):
+        responses.add(responses.GET, self.TREE, json=[], status=200)
+        responses.add(responses.GET, self.README, body=b"# hi", status=200)
+        assert self._create(authenticated_client).status_code == 201

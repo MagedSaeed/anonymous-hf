@@ -158,7 +158,7 @@ class ProxyTreeView(View):
 class ProxyInfoView(View):
     """Return basic anonymous repo metadata.
 
-    For expired repos, reveals the original HuggingFace URL so reviewers
+    For expired repos, reveals the original HuggingFace URL so viewers
     can find the real identity after the review period is over.
     """
 

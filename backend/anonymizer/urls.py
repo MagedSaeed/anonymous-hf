@@ -2,6 +2,7 @@ from django.urls import path
 
 from anonymizer.views import (
     ActivityLogListView,
+    HFRepoCheckView,
     HFRepoListView,
     RepoDetailView,
     RepoExpireView,
@@ -16,4 +17,5 @@ urlpatterns = [
     path("repos/<int:pk>/sync-latest/", RepoSyncLatestView.as_view(), name="repo-sync-latest"),
     path("repos/<int:repo_id>/activity/", ActivityLogListView.as_view(), name="repo-activity"),
     path("hf-repos/", HFRepoListView.as_view(), name="hf-repos"),
+    path("hf-repo-check/", HFRepoCheckView.as_view(), name="hf-repo-check"),
 ]

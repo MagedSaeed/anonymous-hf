@@ -22,6 +22,37 @@ const FINDING_LABELS: Record<IdentityFinding['kind'], string> = {
   author: 'Author name',
 }
 
+interface RepoCheckResult {
+  status: 'ok' | 'not_found' | 'no_access' | 'unknown' | 'invalid_url'
+  message: string
+}
+
+// "unknown" is amber, not red: HuggingFace being unreachable is not the user's fault.
+function RepoCheckStatus({
+  checking,
+  result,
+}: {
+  checking: boolean
+  result: RepoCheckResult | null
+}) {
+  if (checking) {
+    return <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5">Checking…</p>
+  }
+  if (!result) return null
+  if (result.status === 'ok') {
+    return (
+      <p className="text-xs text-green-600 dark:text-green-400 mt-1.5">
+        Found on HuggingFace.
+      </p>
+    )
+  }
+  const tone =
+    result.status === 'unknown'
+      ? 'text-amber-600 dark:text-amber-400'
+      : 'text-red-600 dark:text-red-400'
+  return <p className={`text-xs mt-1.5 ${tone}`}>{result.message}</p>
+}
+
 // Always shown: the scan is best-effort, so a clean result is not a guarantee.
 function AnonymityNotice({ findings }: { findings: IdentityFinding[] }) {
   return (
@@ -30,7 +61,7 @@ function AnonymityNotice({ findings }: { findings: IdentityFinding[] }) {
         Check your branch for identifying information
       </h3>
       <p className="text-sm text-yellow-800 dark:text-yellow-300">
-        Reviewers can read every file in this branch exactly as it is on HuggingFace.
+        Viewers can read every file in this branch exactly as it is on HuggingFace.
         Watch out for links that lead back to you &mdash; especially arXiv links, but also
         GitHub URLs, email addresses, author names in citations, and acknowledgements.
       </p>
@@ -116,7 +147,7 @@ function SuccessView({ result, initialColabUrl, apiCall }: SuccessViewProps) {
           </svg>
         </div>
         <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1">Repository Created!</h2>
-        <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">Your anonymous URL is ready to share with reviewers.</p>
+        <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">Your anonymous URL is ready to share with viewers.</p>
 
         <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 mb-6">
           <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Anonymous URL</p>
@@ -138,6 +169,11 @@ function SuccessView({ result, initialColabUrl, apiCall }: SuccessViewProps) {
           <label className="form-label">
             Colab Notebook URL <span className="text-slate-400 dark:text-slate-500 font-normal">(optional)</span>
           </label>
+          <p className="text-xs text-amber-600 dark:text-amber-400 mb-1.5 leading-relaxed font-medium">
+            Important: the link itself can identify you &mdash; a URL like
+            colab.research.google.com/github/<span className="font-mono">your-username</span>/... reveals your
+            GitHub account. Check the notebook contents too. This is your responsibility.
+          </p>
           <div className="flex items-center gap-2">
             <input
               type="url"
@@ -156,9 +192,6 @@ function SuccessView({ result, initialColabUrl, apiCall }: SuccessViewProps) {
             </button>
           </div>
           {colabError && <p className="text-red-600 dark:text-red-400 text-xs mt-1">{colabError}</p>}
-          <p className="text-xs text-amber-600 dark:text-amber-400 mt-1.5 leading-relaxed font-medium">
-            Important: Ensure your Colab notebook does not contain any identity-revealing details. This is your responsibility.
-          </p>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -190,6 +223,8 @@ function SuccessView({ result, initialColabUrl, apiCall }: SuccessViewProps) {
 export default function CreateRepoPage() {
   const { apiCall, user } = useAuth()
   const [originalUrl, setOriginalUrl] = useState('')
+  const [repoCheck, setRepoCheck] = useState<RepoCheckResult | null>(null)
+  const [checkingRepo, setCheckingRepo] = useState(false)
   const [repoType, setRepoType] = useState<'model' | 'dataset'>('dataset')
   const [branch, setBranch] = useState('main')
   const [expiryDays, setExpiryDays] = useState(user?.default_expiry_days || 90)
@@ -254,6 +289,31 @@ export default function CreateRepoPage() {
     setOriginalUrl(url)
     setRepoType(repo.repo_type)
     setShowDropdown(false)
+  }
+
+  const runRepoCheck = async () => {
+    const url = inputMode === 'url' ? originalUrl.trim() : normalizeInput(originalUrl, repoType)
+    if (!originalUrl.trim()) {
+      setRepoCheck(null)
+      return
+    }
+    const localError = validateHfUrl(url)
+    if (localError) {
+      setRepoCheck({ status: 'invalid_url', message: localError })
+      return
+    }
+    setCheckingRepo(true)
+    try {
+      const res = await apiCall<RepoCheckResult>(
+        'GET',
+        `/api/hf-repo-check/?url=${encodeURIComponent(url)}&branch=${encodeURIComponent(branch)}`
+      )
+      setRepoCheck(res.data)
+    } catch {
+      setRepoCheck(null)
+    } finally {
+      setCheckingRepo(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -324,7 +384,7 @@ export default function CreateRepoPage() {
                 >
                   Settings
                 </Link>{' '}
-                so the proxy can reliably access your repositories on behalf of anonymous reviewers.
+                so the proxy can reliably access your repositories on behalf of anonymous viewers.
               </p>
             </div>
           </div>
@@ -428,11 +488,13 @@ export default function CreateRepoPage() {
               <input
                 type="text"
                 value={originalUrl}
-                onChange={(e) => setOriginalUrl(e.target.value)}
+                onChange={(e) => { setOriginalUrl(e.target.value); setRepoCheck(null) }}
+                onBlur={runRepoCheck}
                 placeholder="username/repo-name or full URL"
                 className="input-field"
                 required
               />
+              <RepoCheckStatus checking={checkingRepo} result={repoCheck} />
               <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5">
                 Enter a repo ID (e.g., <code className="text-slate-500 dark:text-slate-400">username/repo-name</code>) or full URL.
               </p>
@@ -502,6 +564,12 @@ export default function CreateRepoPage() {
           <label htmlFor="colab" className="form-label">
             Colab Notebook URL <span className="text-slate-400 dark:text-slate-500 font-normal">(optional)</span>
           </label>
+          <p className="text-xs text-amber-600 dark:text-amber-400 mb-1.5 leading-relaxed font-medium">
+            Important: the link itself can identify you &mdash; a URL like
+            colab.research.google.com/github/<span className="font-mono">your-username</span>/... reveals your
+            GitHub account. Check the notebook too (author name, affiliation, repo URL). Viewers see
+            this link, so keeping it anonymous is your responsibility.
+          </p>
           <input
             id="colab"
             type="url"
@@ -512,9 +580,6 @@ export default function CreateRepoPage() {
           />
           <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5">
             Optional link to a Colab notebook demonstrating usage of your dataset/model.
-          </p>
-          <p className="text-xs text-amber-600 dark:text-amber-400 mt-1.5 leading-relaxed font-medium">
-            Important: Make sure your Colab notebook does not contain any identity-revealing details (author name, affiliation, repo URL, etc.). Maintaining anonymity in the notebook is your responsibility.
           </p>
         </div>
 
