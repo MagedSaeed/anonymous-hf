@@ -94,7 +94,7 @@ class TestProxyFileView:
 
         resp = client.get(f"/api/a/{active_repo.anonymous_id}/resolve/data.csv")
         assert resp.status_code == 200
-        assert resp["Content-Type"] == "text/csv"
+        assert b"".join(resp.streaming_content) == b"a,b,c\n1,2,3\n"
 
     def test_proxy_file_not_found_repo(self, client):
         resp = client.get("/api/a/nonexistent12/resolve/README.md")
@@ -302,3 +302,81 @@ class TestProxyPathTraversal:
         resp = client.get(f"/api/a/{active_repo.anonymous_id}/tree/%2e%2e/%2e%2e")
         assert resp.status_code == 404
         assert len(responses.calls) == 0
+
+
+@pytest.mark.django_db
+class TestProxyFileContentType:
+    """Proxied bytes must never be executable on our own origin."""
+
+    def _hf_url(self, name):
+        return f"https://huggingface.co/datasets/testuser/testrepo/resolve/main/{name}"
+
+    @responses.activate
+    def test_svg_is_served_as_text(self, client, active_repo):
+        responses.add(
+            responses.GET,
+            self._hf_url("payload.svg"),
+            body=b"<svg xmlns='http://www.w3.org/2000/svg'><script>alert(1)</script></svg>",
+            status=200,
+            content_type="image/svg+xml",
+        )
+
+        resp = client.get(f"/api/a/{active_repo.anonymous_id}/resolve/payload.svg")
+        assert resp["Content-Type"] == "text/plain; charset=utf-8"
+        assert resp["X-Content-Type-Options"] == "nosniff"
+        assert "sandbox" in resp["Content-Security-Policy"]
+
+    @responses.activate
+    def test_html_is_served_as_text(self, client, active_repo):
+        responses.add(
+            responses.GET,
+            self._hf_url("page.html"),
+            body=b"<script>alert(1)</script>",
+            status=200,
+            content_type="text/html",
+        )
+
+        resp = client.get(f"/api/a/{active_repo.anonymous_id}/resolve/page.html")
+        assert resp["Content-Type"] == "text/plain; charset=utf-8"
+
+    @responses.activate
+    def test_raster_image_keeps_its_type(self, client, active_repo):
+        responses.add(
+            responses.GET,
+            self._hf_url("figure.png"),
+            body=b"\x89PNG\r\n\x1a\n",
+            status=200,
+            content_type="image/png",
+        )
+
+        resp = client.get(f"/api/a/{active_repo.anonymous_id}/resolve/figure.png")
+        assert resp["Content-Type"] == "image/png"
+        assert resp["X-Content-Type-Options"] == "nosniff"
+
+    @responses.activate
+    def test_missing_upstream_type_does_not_fall_back_to_html(self, client, active_repo):
+        # StreamingHttpResponse defaults to text/html when no type is given.
+        responses.add(
+            responses.GET,
+            self._hf_url("unknown.bin"),
+            body=b"data",
+            status=200,
+            content_type=None,
+        )
+
+        resp = client.get(f"/api/a/{active_repo.anonymous_id}/resolve/unknown.bin")
+        assert resp["Content-Type"] == "text/plain; charset=utf-8"
+
+    @responses.activate
+    def test_upstream_content_disposition_is_not_proxied(self, client, active_repo):
+        responses.add(
+            responses.GET,
+            self._hf_url("payload.svg"),
+            body=b"<svg/>",
+            status=200,
+            content_type="image/svg+xml",
+            headers={"Content-Disposition": 'inline; filename="payload.svg"'},
+        )
+
+        resp = client.get(f"/api/a/{active_repo.anonymous_id}/resolve/payload.svg")
+        assert not resp.has_header("Content-Disposition")

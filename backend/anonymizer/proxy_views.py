@@ -12,7 +12,22 @@ from anonymizer.services.huggingface_client import (
 )
 
 CHUNK_SIZE = 8192
-PROXY_HEADERS = ["Content-Type", "Content-Length", "Content-Disposition", "ETag", "Last-Modified"]
+PROXY_HEADERS = ["Content-Length", "ETag", "Last-Modified"]
+
+# Raster images cannot execute script; everything else (notably image/svg+xml)
+# is served as text so it cannot run on our own origin.
+INLINE_SAFE_TYPES = frozenset(["image/png", "image/jpeg", "image/gif", "image/webp"])
+TEXT_CONTENT_TYPE = "text/plain; charset=utf-8"
+
+
+def safe_content_type(upstream_type):
+    """Map HuggingFace's Content-Type to one that cannot execute on our origin."""
+    if not upstream_type:
+        return TEXT_CONTENT_TYPE
+    base = upstream_type.split(";")[0].strip().lower()
+    if base in INLINE_SAFE_TYPES:
+        return base
+    return TEXT_CONTENT_TYPE
 
 
 def get_repo_or_404(anonymous_id):
@@ -103,6 +118,7 @@ class ProxyFileView(View):
         response = StreamingHttpResponse(
             hf_response.iter_content(chunk_size=CHUNK_SIZE),
             status=200,
+            content_type=safe_content_type(hf_response.headers.get("Content-Type")),
         )
 
         # Copy relevant headers
@@ -110,6 +126,9 @@ class ProxyFileView(View):
             value = hf_response.headers.get(header)
             if value:
                 response[header] = value
+
+        response["X-Content-Type-Options"] = "nosniff"
+        response["Content-Security-Policy"] = "default-src 'none'; sandbox"
 
         return response
 
