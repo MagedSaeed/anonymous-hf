@@ -17,7 +17,30 @@ export default function SettingsPage() {
   } | null>(null)
   const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'danger'>('profile')
   const [showToken, setShowToken] = useState(false)
+  const [revealedToken, setRevealedToken] = useState<string | null>(null)
+  const [tokenLoading, setTokenLoading] = useState(false)
   const [showRemoveTokenConfirm, setShowRemoveTokenConfirm] = useState(false)
+
+  // The token is not part of the profile payload; fetch it only when revealed.
+  const handleToggleToken = async () => {
+    if (showToken) {
+      setShowToken(false)
+      return
+    }
+    if (revealedToken === null) {
+      setTokenLoading(true)
+      try {
+        const res = await apiCall<{ hf_api_token: string }>('GET', '/api/hf-token/')
+        setRevealedToken(res.data.hf_api_token)
+      } catch {
+        setTokenMessage({ type: 'error', text: 'Failed to load token.' })
+        return
+      } finally {
+        setTokenLoading(false)
+      }
+    }
+    setShowToken(true)
+  }
 
   const handleSavePreferences = async () => {
     setSaving(true)
@@ -39,6 +62,8 @@ export default function SettingsPage() {
     try {
       await apiCall('PATCH', '/api/profile/', { hf_api_token: tokenInput })
       await checkAuthStatus()
+      setRevealedToken(null)
+      setShowToken(false)
       setTokenInput('')
       setTokenMessage({ type: 'success', text: 'API token saved successfully.' })
       setTimeout(() => setTokenMessage(null), 3000)
@@ -55,6 +80,8 @@ export default function SettingsPage() {
     try {
       await apiCall('PATCH', '/api/profile/', { hf_api_token: '' })
       await checkAuthStatus()
+      setRevealedToken(null)
+      setShowToken(false)
       setTokenMessage({ type: 'success', text: 'API token removed.' })
       setTimeout(() => setTokenMessage(null), 3000)
     } catch {
@@ -151,15 +178,16 @@ export default function SettingsPage() {
                   <div className="flex items-center gap-2">
                     <div className="flex-1 sm:max-w-sm relative">
                       <input
-                        type={showToken ? 'text' : 'password'}
-                        value={user.hf_api_token}
+                        type="text"
+                        value={showToken ? (revealedToken ?? '') : '••••••••••••••••••••'}
                         readOnly
                         className="input-field pr-10 font-mono text-xs"
                       />
                       <button
                         type="button"
-                        onClick={() => setShowToken(!showToken)}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors"
+                        onClick={handleToggleToken}
+                        disabled={tokenLoading}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors disabled:opacity-50"
                         aria-label={showToken ? 'Hide token' : 'Show token'}
                       >
                         {showToken ? (

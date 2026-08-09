@@ -72,7 +72,7 @@ class TestProfileView:
         assert response.status_code == 200
         data = response.json()
         assert data["has_hf_token"] is False
-        assert data["hf_api_token"] == ""
+        assert "hf_api_token" not in data
 
     def test_profile_patch_sets_hf_api_token(self):
         user = UserFactory()
@@ -86,7 +86,6 @@ class TestProfileView:
         assert response.status_code == 200
         data = response.json()
         assert data["has_hf_token"] is True
-        assert data["hf_api_token"] == "hf_test_token_123"
         user.refresh_from_db()
         assert user.hf_api_token == "hf_test_token_123"
 
@@ -140,3 +139,54 @@ class TestDeleteAccountView:
         assert response.status_code == 200
         user.refresh_from_db()
         assert user.is_active is False
+
+
+@pytest.mark.django_db
+class TestProfileTokenView:
+    """The HF token is fetched on demand, not shipped with every profile load."""
+
+    def test_profile_omits_hf_api_token(self):
+        user = UserFactory(hf_api_token="hf_secret_123")
+        client = Client()
+        client.force_login(user)
+        response = client.get(reverse("profile"))
+        assert response.status_code == 200
+        data = response.json()
+        assert "hf_api_token" not in data
+        assert data["has_hf_token"] is True
+
+    def test_token_endpoint_returns_token(self):
+        user = UserFactory(hf_api_token="hf_secret_123")
+        client = Client()
+        client.force_login(user)
+        response = client.get(reverse("hf-token"))
+        assert response.status_code == 200
+        assert response.json()["hf_api_token"] == "hf_secret_123"
+
+    def test_token_endpoint_returns_only_own_token(self):
+        UserFactory(hf_api_token="hf_other_users_token")
+        user = UserFactory(hf_api_token="hf_my_token")
+        client = Client()
+        client.force_login(user)
+        response = client.get(reverse("hf-token"))
+        assert response.json()["hf_api_token"] == "hf_my_token"
+
+    def test_token_endpoint_requires_auth(self):
+        client = Client()
+        response = client.get(reverse("hf-token"))
+        assert response.status_code == 403
+
+    def test_token_endpoint_empty_when_unset(self):
+        user = UserFactory(hf_api_token="")
+        client = Client()
+        client.force_login(user)
+        response = client.get(reverse("hf-token"))
+        assert response.status_code == 200
+        assert response.json()["hf_api_token"] == ""
+
+    def test_token_endpoint_is_not_cached(self):
+        user = UserFactory(hf_api_token="hf_secret_123")
+        client = Client()
+        client.force_login(user)
+        response = client.get(reverse("hf-token"))
+        assert response["Cache-Control"] == "no-store"

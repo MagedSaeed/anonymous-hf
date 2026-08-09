@@ -46,6 +46,17 @@ class ProfileView(APIView):
         return Response(serializer.data)
 
 
+class HFTokenView(APIView):
+    """Return the caller's own HuggingFace token, fetched only when revealed."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        response = Response({"hf_api_token": request.user.hf_api_token})
+        response["Cache-Control"] = "no-store"
+        return response
+
+
 class HealthCheckView(APIView):
     """Simple health check endpoint."""
 
