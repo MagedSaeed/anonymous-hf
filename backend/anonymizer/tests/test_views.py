@@ -228,6 +228,45 @@ class TestRepoDetailView:
         deleted_repo.refresh_from_db()
         assert deleted_repo.status == "deleted"
 
+    def test_permanent_delete_removes_soft_deleted_repo(self, authenticated_client, user):
+        deleted_repo = AnonymousRepoFactory(owner=user, status="deleted")
+        resp = authenticated_client.delete(f"/api/repos/{deleted_repo.pk}/?permanent=true")
+        assert resp.status_code == 204
+        assert not AnonymousRepo.objects.filter(pk=deleted_repo.pk).exists()
+
+    def test_permanent_delete_removes_activity_logs(self, authenticated_client, user):
+        deleted_repo = AnonymousRepoFactory(owner=user, status="deleted")
+        ActivityLogFactory(anonymous_repo=deleted_repo)
+        authenticated_client.delete(f"/api/repos/{deleted_repo.pk}/?permanent=true")
+        assert not ActivityLog.objects.filter(anonymous_repo_id=deleted_repo.pk).exists()
+
+    def test_permanent_delete_rejects_active_repo(self, authenticated_client, repo):
+        resp = authenticated_client.delete(f"/api/repos/{repo.pk}/?permanent=true")
+        assert resp.status_code == 400
+        repo.refresh_from_db()
+        assert repo.status == "active"
+
+    def test_permanent_delete_rejects_expired_repo(self, authenticated_client, user):
+        expired_repo = AnonymousRepoFactory(owner=user, status="expired")
+        resp = authenticated_client.delete(f"/api/repos/{expired_repo.pk}/?permanent=true")
+        assert resp.status_code == 400
+        expired_repo.refresh_from_db()
+        assert expired_repo.status == "expired"
+
+    def test_permanent_delete_ignores_non_true_value(self, authenticated_client, user):
+        deleted_repo = AnonymousRepoFactory(owner=user, status="deleted")
+        resp = authenticated_client.delete(f"/api/repos/{deleted_repo.pk}/?permanent=1")
+        assert resp.status_code == 204
+        assert AnonymousRepo.objects.filter(pk=deleted_repo.pk).exists()
+
+    def test_permanent_delete_only_owner(self, user):
+        deleted_repo = AnonymousRepoFactory(owner=user, status="deleted")
+        client = Client()
+        client.force_login(UserFactory())
+        resp = client.delete(f"/api/repos/{deleted_repo.pk}/?permanent=true")
+        assert resp.status_code == 404
+        assert AnonymousRepo.objects.filter(pk=deleted_repo.pk).exists()
+
 
 @pytest.mark.django_db
 class TestRepoExpireView:

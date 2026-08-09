@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import ConfirmDialog from '../../components/ConfirmDialog/ConfirmDialog'
+import { SETTINGS_TABS, parseSettingsTab } from './settingsTabs'
 
 export default function SettingsPage() {
   const { user, apiCall, logout, checkAuthStatus } = useAuth()
@@ -15,7 +17,8 @@ export default function SettingsPage() {
     type: 'success' | 'error'
     text: string
   } | null>(null)
-  const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'danger'>('profile')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const activeTab = parseSettingsTab(searchParams.get('tab'))
   const [showToken, setShowToken] = useState(false)
   const [revealedToken, setRevealedToken] = useState<string | null>(null)
   const [tokenLoading, setTokenLoading] = useState(false)
@@ -100,21 +103,15 @@ export default function SettingsPage() {
     }
   }
 
-  const tabs = [
-    { id: 'profile' as const, label: 'Profile' },
-    { id: 'preferences' as const, label: 'Preferences' },
-    { id: 'danger' as const, label: 'Danger Zone' },
-  ]
-
   return (
     <div className="max-w-2xl mx-auto">
       <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6">Settings</h1>
 
       <div className="flex items-center gap-1 mb-6 border-b border-slate-200 dark:border-slate-700">
-        {tabs.map((tab) => (
+        {SETTINGS_TABS.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => setSearchParams({ tab: tab.id }, { replace: true })}
             className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
               activeTab === tab.id
                 ? 'border-amber-500 text-amber-700 dark:text-amber-400'

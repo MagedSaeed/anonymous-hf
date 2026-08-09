@@ -107,9 +107,24 @@ class RepoDetailView(generics.RetrieveUpdateDestroyAPIView):
                 anonymous_repo=instance, action="restored", actor_type="owner"
             )
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        # Permanent deletion is opt-in and only allowed on an already soft-deleted
+        # repo, so no single request can destroy a live anonymous URL.
+        if request.query_params.get("permanent", "").lower() == "true":
+            if instance.status != "deleted":
+                return Response(
+                    {"error": "Soft-delete the repository before deleting it permanently."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            instance.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     def perform_destroy(self, instance):
         if instance.status == "deleted":
-            # Already soft-deleted — no-op, permanent deletion is not supported
+            # Already soft-deleted — permanent removal requires ?permanent=true
             return
         # Soft-delete only
         instance.status = "deleted"

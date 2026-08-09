@@ -43,7 +43,7 @@ export default function HomePage() {
                   <p className="text-xs text-amber-700 dark:text-amber-400">
                     Add a HuggingFace API token in{' '}
                     <Link
-                      to="/app/settings"
+                      to="/app/settings?tab=preferences"
                       className="underline font-medium hover:text-amber-900 dark:hover:text-amber-200"
                     >
                       Settings

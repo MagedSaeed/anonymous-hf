@@ -84,7 +84,7 @@ export default function DashboardPage() {
                 expires every ~8 hours. For reliable access to your repositories, add a long-lived
                 API token in{' '}
                 <Link
-                  to="/app/settings"
+                  to="/app/settings?tab=preferences"
                   className="underline font-medium hover:text-amber-900 dark:hover:text-amber-200"
                 >
                   Settings

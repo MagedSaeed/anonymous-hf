@@ -17,11 +17,20 @@ export default function RepoCard({ repo }: RepoCardProps) {
   const hfUrl = repoId ? buildHfUrl(repo.repo_type, repoId) : repo.original_url
 
   return (
-    <div className="bg-white border border-slate-200/60 rounded-xl p-4 hover:border-slate-300 hover:shadow-sm transition-all duration-150 dark:bg-slate-800 dark:border-slate-700 dark:hover:border-slate-600 overflow-hidden">
+    <div className="group relative bg-white border border-slate-200/60 rounded-xl p-4 hover:border-amber-300 hover:shadow-md transition-all duration-150 dark:bg-slate-800 dark:border-slate-700 dark:hover:border-amber-600/60 overflow-hidden">
+      {/* Stretched link: the whole card navigates to the manage page, while the
+          links below sit above it (z-10) and keep their own destinations. */}
+      <Link
+        to={`/app/repos/${repo.id}`}
+        aria-label={`Manage ${repoId || repo.anonymous_id}`}
+        className="absolute inset-0 z-0"
+      />
+
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
           <StatusBadge status={repo.repo_type} />
-          <StatusBadge status={repo.status} />
+          {/* Only badge a status worth noticing — "active" is the default. */}
+          {repo.status !== 'active' && <StatusBadge status={repo.status} />}
         </div>
         <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
           <span>{repo.visitor_views} visits</span>
@@ -34,7 +43,7 @@ export default function RepoCard({ repo }: RepoCardProps) {
           href={hfUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm font-medium text-slate-800 hover:text-amber-700 transition-colors dark:text-slate-200 dark:hover:text-amber-400 block truncate"
+          className="relative z-10 text-sm font-medium text-slate-800 hover:text-amber-700 transition-colors dark:text-slate-200 dark:hover:text-amber-400 inline-block max-w-full truncate"
           title={repo.original_url}
         >
           {repoId || repo.original_url}
@@ -47,12 +56,12 @@ export default function RepoCard({ repo }: RepoCardProps) {
           href={fullUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs bg-slate-50 px-2 py-1 rounded-md border border-slate-200 flex-1 truncate text-amber-700 hover:text-amber-800 font-mono dark:bg-slate-900 dark:border-slate-700 dark:text-amber-400 dark:hover:text-amber-300"
+          className="relative z-10 text-xs bg-slate-50 px-2 py-1 rounded-md border border-slate-200 flex-1 truncate text-amber-700 hover:text-amber-800 font-mono dark:bg-slate-900 dark:border-slate-700 dark:text-amber-400 dark:hover:text-amber-300"
           title={fullUrl}
         >
           {fullUrl}
         </a>
-        <CopyButton text={fullUrl} />
+        <CopyButton text={fullUrl} className="relative z-10 shrink-0" />
       </div>
 
       <div className="flex items-center justify-between">
@@ -61,12 +70,13 @@ export default function RepoCard({ repo }: RepoCardProps) {
         >
           {expiryText}
         </span>
-        <Link
-          to={`/app/repos/${repo.id}`}
-          className="text-xs text-amber-700 hover:text-amber-800 font-medium transition-colors dark:text-amber-400 dark:hover:text-amber-300"
-        >
-          Details
-        </Link>
+        {/* Visual affordance only — the stretched link above handles the click. */}
+        <span className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md bg-amber-400 text-slate-900 group-hover:bg-amber-500 transition-colors shrink-0">
+          Manage
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+          </svg>
+        </span>
       </div>
     </div>
   )

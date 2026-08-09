@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import StatusBadge from '../../components/StatusBadge/StatusBadge'
 import CopyButton from '../../components/CopyButton/CopyButton'
 import ConfirmDialog from '../../components/ConfirmDialog/ConfirmDialog'
+import Toast, { type ToastType } from '../../components/Toast/Toast'
 import { parseRepoId, buildHfUrl } from '../../utils'
 import { validateBranch, validateColabUrl } from '../../validation'
 import type { AnonymousRepo, ActivityLog, PaginatedResponse } from '../../types'
@@ -28,6 +29,7 @@ function actorBadge(actorType: string) {
 
 export default function RepoDetailsPage() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const { apiCall, user } = useAuth()
   const [repo, setRepo] = useState<AnonymousRepo | null>(null)
   const [activities, setActivities] = useState<ActivityLog[]>([])
@@ -37,31 +39,33 @@ export default function RepoDetailsPage() {
   const [loadingActivities, setLoadingActivities] = useState(false)
   const [actorFilter, setActorFilter] = useState('')
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // One notice channel for both outcomes. `id` forces a remount so a repeated
+  // message restarts the toast's auto-hide timer instead of reusing the old one.
+  const [notice, setNotice] = useState<{ id: number; type: ToastType; text: string } | null>(null)
+  const noticeId = useRef(0)
 
-  const showError = useCallback((fallback: string, err?: unknown) => {
-    const e = err as { response?: { data?: { error?: string; detail?: string; colab_url?: string[] } } }
-    const data = e?.response?.data
-    const msg = data?.error || data?.detail || data?.colab_url?.[0] || fallback
-    setError(msg)
-    if (errorTimerRef.current) clearTimeout(errorTimerRef.current)
-    errorTimerRef.current = setTimeout(() => setError(null), 8000)
+  const notify = useCallback((type: ToastType, text: string) => {
+    noticeId.current += 1
+    setNotice({ id: noticeId.current, type, text })
   }, [])
 
-  const dismissError = useCallback(() => {
-    setError(null)
-    if (errorTimerRef.current) clearTimeout(errorTimerRef.current)
-  }, [])
+  const showError = useCallback(
+    (fallback: string, err?: unknown) => {
+      const e = err as {
+        response?: { data?: { error?: string; detail?: string; colab_url?: string[] } }
+      }
+      const data = e?.response?.data
+      notify('error', data?.error || data?.detail || data?.colab_url?.[0] || fallback)
+    },
+    [notify]
+  )
 
-  useEffect(() => {
-    return () => {
-      if (errorTimerRef.current) clearTimeout(errorTimerRef.current)
-    }
-  }, [])
+  const dismissNotice = useCallback(() => setNotice(null), [])
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showExpireConfirm, setShowExpireConfirm] = useState(false)
+  const [showPurgeConfirm, setShowPurgeConfirm] = useState(false)
+  const [purging, setPurging] = useState(false)
   const [extendDays, setExtendDays] = useState(30)
   const [editBranch, setEditBranch] = useState('')
   const [savingBranch, setSavingBranch] = useState(false)
@@ -125,6 +129,7 @@ export default function RepoDetailsPage() {
         expiry_days: extendDays,
       })
       setRepo(res.data)
+      notify('success', `Expiry set to ${extendDays} days from now`)
     } catch (err) {
       showError('Failed to extend expiry', err)
     }
@@ -137,8 +142,22 @@ export default function RepoDetailsPage() {
       const res = await apiCall<AnonymousRepo>('GET', `/api/repos/${id}/`)
       setRepo(res.data)
       setShowDeleteConfirm(false)
+      notify('success', 'Repository deleted — the anonymous URL is now inactive')
     } catch (err) {
       showError('Failed to delete repository', err)
+    }
+  }
+
+  const handlePermanentDelete = async () => {
+    setShowPurgeConfirm(false)
+    setPurging(true)
+    try {
+      await apiCall('DELETE', `/api/repos/${id}/?permanent=true`)
+      navigate('/app/dashboard')
+    } catch (err) {
+      showError('Failed to permanently delete repository', err)
+    } finally {
+      setPurging(false)
     }
   }
 
@@ -148,6 +167,7 @@ export default function RepoDetailsPage() {
         status: 'active',
       })
       setRepo(res.data)
+      notify('success', 'Repository restored')
     } catch (err) {
       showError('Failed to restore repository', err)
     }
@@ -158,6 +178,7 @@ export default function RepoDetailsPage() {
       const res = await apiCall<AnonymousRepo>('POST', `/api/repos/${id}/expire/`)
       setRepo(res.data)
       setShowExpireConfirm(false)
+      notify('success', 'Repository expired — viewers can no longer access it')
     } catch (err) {
       showError('Failed to expire repository', err)
     }
@@ -176,6 +197,7 @@ export default function RepoDetailsPage() {
       })
       setRepo(res.data)
       setEditBranch(res.data.branch)
+      notify('success', `Revision updated to ${res.data.branch}`)
     } catch (err) {
       showError('Failed to update revision', err)
     } finally {
@@ -189,6 +211,7 @@ export default function RepoDetailsPage() {
       const res = await apiCall<AnonymousRepo>('POST', `/api/repos/${id}/sync-latest/`)
       setRepo(res.data)
       setEditBranch(res.data.branch)
+      notify('success', `Pinned to latest commit ${res.data.branch.slice(0, 8)}`)
     } catch (err) {
       showError('Failed to sync to latest commit', err)
     } finally {
@@ -209,6 +232,7 @@ export default function RepoDetailsPage() {
       })
       setRepo(res.data)
       setEditColabUrl(res.data.colab_url || '')
+      notify('success', 'Colab link updated')
     } catch (err) {
       showError('Failed to update Colab link', err)
     } finally {
@@ -224,6 +248,7 @@ export default function RepoDetailsPage() {
       })
       setRepo(res.data)
       setEditColabUrl('')
+      notify('success', 'Colab link removed')
     } catch (err) {
       showError('Failed to remove Colab link', err)
     } finally {
@@ -243,12 +268,18 @@ export default function RepoDetailsPage() {
     return (
       <div className="max-w-lg mx-auto text-center py-16">
         <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1">Repository Not Found</h1>
-        <p className="text-slate-500 dark:text-slate-400 text-sm">{error || 'This repository could not be found.'}</p>
+        <p className="text-slate-500 dark:text-slate-400 text-sm">
+          {notice?.type === 'error' ? notice.text : 'This repository could not be found.'}
+        </p>
       </div>
     )
   }
 
   const anonUrl = `${window.location.origin}/a/${repo.anonymous_id}/`
+  // Save buttons are promoted to primary while an edit is pending, so the page
+  // always has exactly one obvious next action.
+  const branchDirty = editBranch.trim() !== repo.branch
+  const colabDirty = editColabUrl.trim() !== (repo.colab_url || '')
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -261,19 +292,13 @@ export default function RepoDetailsPage() {
         </svg>
         Back to Dashboard
       </Link>
-      {error && (
-        <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-5 flex items-start justify-between gap-3">
-          <p className="text-red-700 dark:text-red-400 text-sm">{error}</p>
-          <button
-            onClick={dismissError}
-            className="shrink-0 text-red-400 hover:text-red-600 dark:text-red-500 dark:hover:text-red-300 transition-colors"
-            aria-label="Dismiss error"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+      {notice && (
+        <Toast
+          key={notice.id}
+          type={notice.type}
+          message={notice.text}
+          onDismiss={dismissNotice}
+        />
       )}
 
       {user && !user.has_hf_token && (
@@ -299,7 +324,7 @@ export default function RepoDetailsPage() {
               <p className="text-xs text-amber-700 dark:text-amber-400 mt-1 leading-relaxed">
                 Viewers won't be able to access this repository without a personal API token. Add one in{' '}
                 <Link
-                  to="/app/settings"
+                  to="/app/settings?tab=preferences"
                   className="underline font-medium hover:text-amber-900 dark:hover:text-amber-200"
                 >
                   Settings
@@ -315,7 +340,8 @@ export default function RepoDetailsPage() {
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-2">
             <StatusBadge status={repo.repo_type} />
-            <StatusBadge status={repo.status} />
+            {/* Only badge a status worth noticing — "active" is the default. */}
+            {repo.status !== 'active' && <StatusBadge status={repo.status} />}
           </div>
           <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
             <span>{repo.visitor_views} visits</span>
@@ -356,8 +382,8 @@ export default function RepoDetailsPage() {
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={handleUpdateBranch}
-                  disabled={savingBranch || editBranch.trim() === repo.branch}
-                  className="btn-secondary text-sm shrink-0 disabled:opacity-40"
+                  disabled={savingBranch || !branchDirty}
+                  className={`${branchDirty ? 'btn-primary' : 'btn-secondary'} text-sm shrink-0 disabled:opacity-40`}
                 >
                   {savingBranch ? 'Saving...' : 'Update'}
                 </button>
@@ -407,8 +433,8 @@ export default function RepoDetailsPage() {
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={handleUpdateColab}
-                  disabled={savingColab || editColabUrl.trim() === (repo.colab_url || '')}
-                  className="btn-secondary text-sm shrink-0 disabled:opacity-40"
+                  disabled={savingColab || !colabDirty}
+                  className={`${colabDirty ? 'btn-primary' : 'btn-secondary'} text-sm shrink-0 disabled:opacity-40`}
                 >
                   {savingColab ? 'Saving...' : editColabUrl.trim() && !repo.colab_url ? 'Add' : 'Update'}
                 </button>
@@ -416,7 +442,7 @@ export default function RepoDetailsPage() {
                   <button
                     onClick={handleRemoveColab}
                     disabled={savingColab}
-                    className="btn-danger text-sm shrink-0 disabled:opacity-40"
+                    className="btn-danger-outline text-sm shrink-0"
                   >
                     Remove
                   </button>
@@ -439,7 +465,7 @@ export default function RepoDetailsPage() {
           {repo.status === 'deleted' ? (
             <>
               <div className="flex items-center gap-2">
-                <button onClick={handleRestore} className="btn-secondary text-sm">
+                <button onClick={handleRestore} className="btn-primary text-sm">
                   Restore
                 </button>
                 <a
@@ -451,13 +477,25 @@ export default function RepoDetailsPage() {
                   Preview
                 </a>
               </div>
-              <div className="flex items-start gap-2 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-                <svg className="w-4 h-4 text-slate-400 dark:text-slate-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                  Permanent deletion is not available. Deleting a repository permanently would invalidate the anonymous URL with no way to recover it, which could break shared links. You can restore this repository at any time.
+              <div className="p-3 sm:p-4 rounded-lg border border-red-200 dark:border-red-900 bg-red-50/50 dark:bg-red-950/30">
+                <h3 className="text-sm font-semibold text-red-700 dark:text-red-400 mb-1">
+                  Delete permanently
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-3">
+                  Permanently removes this repository record and its activity log from this
+                  service.{' '}
+                  <span className="font-mono text-slate-700 dark:text-slate-300">
+                    /a/{repo.anonymous_id}/
+                  </span>{' '}
+                  stops working for good and cannot be restored.
                 </p>
+                <button
+                  onClick={() => setShowPurgeConfirm(true)}
+                  disabled={purging}
+                  className="btn-danger text-sm"
+                >
+                  {purging ? 'Deleting...' : 'Delete Permanently'}
+                </button>
               </div>
             </>
           ) : repo.status === 'expired' ? (
@@ -486,7 +524,7 @@ export default function RepoDetailsPage() {
               <div className="flex justify-end pt-3">
                 <button
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="btn-danger text-sm"
+                  className="btn-danger-outline text-sm"
                 >
                   Delete
                 </button>
@@ -518,13 +556,13 @@ export default function RepoDetailsPage() {
               <div className="flex justify-end gap-1.5 pt-3">
                 <button
                   onClick={() => setShowExpireConfirm(true)}
-                  className="btn-danger text-sm"
+                  className="btn-danger-outline text-sm"
                 >
                   Expire Now
                 </button>
                 <button
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="btn-danger text-sm"
+                  className="btn-danger-outline text-sm"
                 >
                   Delete
                 </button>
@@ -660,6 +698,18 @@ export default function RepoDetailsPage() {
           danger
           onConfirm={handleDelete}
           onCancel={() => setShowDeleteConfirm(false)}
+        />
+      )}
+
+      {showPurgeConfirm && (
+        <ConfirmDialog
+          title="Delete Permanently"
+          message={`This permanently removes the repository record and its activity log. /a/${repo.anonymous_id}/ stops working for good and cannot be restored.`}
+          confirmLabel="Delete Forever"
+          danger
+          requireText={repo.anonymous_id}
+          onConfirm={handlePermanentDelete}
+          onCancel={() => setShowPurgeConfirm(false)}
         />
       )}
 

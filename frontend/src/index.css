@@ -3,6 +3,49 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Toast enters and leaves from above. Motion is dropped, but not the fade,
+   for users who ask for reduced motion. */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toast-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes toast-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+}
+
 @layer base {
   html {
     font-family: 'Inter', system-ui, sans-serif;
@@ -38,6 +81,15 @@
            hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2
            focus:ring-red-500 transition-all duration-150
            dark:focus:ring-offset-slate-900;
+  }
+  .btn-danger-outline {
+    @apply inline-flex items-center justify-center px-5 py-2.5 border border-red-300
+           text-sm font-semibold rounded-lg text-red-600 bg-transparent
+           hover:bg-red-50 hover:border-red-400 focus:outline-none focus:ring-2
+           focus:ring-offset-2 focus:ring-red-500 transition-all duration-150
+           disabled:opacity-50 disabled:cursor-not-allowed
+           dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950
+           dark:hover:border-red-800 dark:focus:ring-offset-slate-900;
   }
   .card {
     @apply bg-white rounded-xl shadow-sm border border-slate-200/60 p-4 sm:p-6

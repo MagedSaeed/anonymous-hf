@@ -379,7 +379,7 @@ export default function CreateRepoPage() {
               <p className="text-xs text-amber-700 dark:text-amber-400 mt-1 leading-relaxed">
                 Add a personal API token in{' '}
                 <Link
-                  to="/app/settings"
+                  to="/app/settings?tab=preferences"
                   className="underline font-medium hover:text-amber-900 dark:hover:text-amber-200"
                 >
                   Settings
