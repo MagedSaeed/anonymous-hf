@@ -4,13 +4,55 @@ import { useAuth } from '../../contexts/AuthContext'
 import CopyButton from '../../components/CopyButton/CopyButton'
 import CodeSnippet from '../../components/CodeSnippet/CodeSnippet'
 import { Link } from 'react-router-dom'
-import type { HFRepo } from '../../types'
+import type { HFRepo, IdentityFinding } from '../../types'
 
 interface CreateResult {
   id: number
   anonymous_id: string
   anonymous_url: string
   repo_type: 'model' | 'dataset'
+  identity_findings?: IdentityFinding[]
+}
+
+const FINDING_LABELS: Record<IdentityFinding['kind'], string> = {
+  arxiv: 'arXiv reference',
+  github: 'GitHub link',
+  email: 'Email address',
+  author: 'Author name',
+}
+
+// Always shown: the scan is best-effort, so a clean result is not a guarantee.
+function AnonymityNotice({ findings }: { findings: IdentityFinding[] }) {
+  return (
+    <div className="card border-yellow-200 dark:border-yellow-800 bg-yellow-50/50 dark:bg-yellow-950/30 text-left">
+      <h3 className="text-sm font-semibold text-yellow-900 dark:text-yellow-200 mb-1.5">
+        Check your branch for identifying information
+      </h3>
+      <p className="text-sm text-yellow-800 dark:text-yellow-300">
+        Reviewers can read every file in this branch exactly as it is on HuggingFace.
+        Watch out for links that lead back to you &mdash; especially arXiv links, but also
+        GitHub URLs, email addresses, author names in citations, and acknowledgements.
+      </p>
+      {findings.length > 0 && (
+        <>
+          <p className="text-sm text-yellow-800 dark:text-yellow-300 mt-3 mb-1.5">
+            We spotted these in your README as examples &mdash; this is not a complete list:
+          </p>
+          <ul className="space-y-1">
+            {findings.map((f, i) => (
+              <li key={i} className="text-xs font-mono text-yellow-900 dark:text-yellow-200">
+                README.md:{f.line} &nbsp;<span className="opacity-70">{FINDING_LABELS[f.kind]}</span> &nbsp;{f.match}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      <p className="text-xs text-yellow-700 dark:text-yellow-400 mt-3">
+        This check is best-effort and only reads your README. Making the branch anonymous
+        is your responsibility.
+      </p>
+    </div>
+  )
 }
 
 function normalizeInput(input: string, repoType: 'model' | 'dataset'): string {
@@ -64,6 +106,8 @@ function SuccessView({ result, initialColabUrl, apiCall }: SuccessViewProps) {
 
   return (
     <div className="max-w-2xl mx-auto space-y-4">
+      <AnonymityNotice findings={result.identity_findings ?? []} />
+
       <div className="card text-center">
         <div className="w-12 h-12 bg-green-50 dark:bg-green-950 rounded-xl flex items-center justify-center mx-auto mb-4">
           <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

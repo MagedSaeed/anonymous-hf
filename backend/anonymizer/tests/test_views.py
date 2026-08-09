@@ -1,4 +1,6 @@
 import pytest
+import requests
+import responses
 from django.test import Client
 from django.utils import timezone
 
@@ -257,3 +259,52 @@ class TestActivityLogListView:
         data = resp.json()
         assert data["count"] == 0
         assert len(data["results"]) == 0
+
+
+@pytest.mark.django_db
+class TestCreateRepoIdentityScan:
+    """Creation always returns a findings list; it is advisory, never blocking."""
+
+    README_URL = "https://huggingface.co/datasets/myuser/myrepo/resolve/main/README.md"
+
+    def _create(self, client):
+        return client.post(
+            "/api/repos/",
+            data={"original_url": "https://huggingface.co/datasets/myuser/myrepo"},
+            content_type="application/json",
+        )
+
+    @responses.activate
+    def test_findings_returned_for_arxiv_link(self, authenticated_client):
+        responses.add(
+            responses.GET,
+            self.README_URL,
+            body=b"# Paper\nPreprint: https://arxiv.org/abs/2401.12345\n",
+            status=200,
+        )
+        resp = self._create(authenticated_client)
+        assert resp.status_code == 201
+        findings = resp.json()["identity_findings"]
+        assert [f["kind"] for f in findings] == ["arxiv"]
+        assert findings[0]["line"] == 2
+
+    @responses.activate
+    def test_findings_empty_for_clean_readme(self, authenticated_client):
+        responses.add(responses.GET, self.README_URL, body=b"# A dataset\n", status=200)
+        resp = self._create(authenticated_client)
+        assert resp.status_code == 201
+        assert resp.json()["identity_findings"] == []
+
+    @responses.activate
+    def test_missing_readme_does_not_block_creation(self, authenticated_client):
+        responses.add(responses.GET, self.README_URL, status=404)
+        resp = self._create(authenticated_client)
+        assert resp.status_code == 201
+        assert resp.json()["identity_findings"] == []
+
+    @responses.activate
+    def test_huggingface_failure_does_not_block_creation(self, authenticated_client):
+        responses.add(responses.GET, self.README_URL, body=requests.RequestException("boom"))
+        resp = self._create(authenticated_client)
+        assert resp.status_code == 201
+        assert resp.json()["identity_findings"] == []

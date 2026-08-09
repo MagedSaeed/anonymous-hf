@@ -150,6 +150,25 @@ def build_resolve_url(repo_id, repo_type="dataset", branch="main", file_path="")
     return base
 
 
+def get_file_content(repo_id, repo_type="dataset", branch="main", file_path="", token=None):
+    """Fetch a text file's content. None if it cannot be read."""
+    url = build_resolve_url(repo_id, repo_type, branch, file_path)
+    if url is None:
+        return None
+
+    headers = {}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    try:
+        resp = requests.get(url, headers=headers, timeout=10)
+        if resp.status_code == 200:
+            return resp.text
+    except requests.RequestException:
+        pass
+    return None
+
+
 def _get_user_orgs(token):
     """Fetch organizations the OAuth token has been granted access to.
 

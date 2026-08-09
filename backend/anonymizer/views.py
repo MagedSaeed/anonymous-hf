@@ -12,7 +12,12 @@ from anonymizer.serializers import (
     AnonymousRepoSerializer,
     CreateRepoSerializer,
 )
-from anonymizer.services.huggingface_client import get_latest_commit, list_user_repos
+from anonymizer.services.huggingface_client import (
+    get_file_content,
+    get_latest_commit,
+    list_user_repos,
+)
+from anonymizer.services.identity_scan import scan_for_identity
 
 
 class ActivityPagination(PageNumberPagination):
@@ -49,8 +54,19 @@ class RepoListCreateView(generics.ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         repo = serializer.save()
         ActivityLog.objects.create(anonymous_repo=repo, action="created", actor_type="owner")
-        output_serializer = AnonymousRepoSerializer(repo)
-        return Response(output_serializer.data, status=status.HTTP_201_CREATED)
+        data = AnonymousRepoSerializer(repo).data
+        data["identity_findings"] = self._scan_readme(repo)
+        return Response(data, status=status.HTTP_201_CREATED)
+
+    def _scan_readme(self, repo):
+        """Advisory scan of the README. Never blocks creation."""
+        repo_id = repo.get_hf_repo_id()
+        if not repo_id:
+            return []
+        content = get_file_content(
+            repo_id, repo.repo_type, repo.branch, "README.md", repo.owner.hf_api_token
+        )
+        return scan_for_identity(content)
 
 
 class RepoDetailView(generics.RetrieveUpdateDestroyAPIView):

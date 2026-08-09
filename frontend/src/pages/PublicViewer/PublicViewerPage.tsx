@@ -63,19 +63,6 @@ function toArray(val: string | string[] | undefined): string[] {
   return Array.isArray(val) ? val : [val]
 }
 
-// --- Arxiv detection & redaction ---
-
-const ARXIV_PATTERN = /https?:\/\/arxiv\.org\/(abs|pdf)\/[\w.]+/gi
-
-function hasArxivContent(meta: FrontmatterData | null, body: string): boolean {
-  if (meta?.arxiv) return true
-  return ARXIV_PATTERN.test(body)
-}
-
-function redactArxiv(body: string): string {
-  return body.replace(ARXIV_PATTERN, '[arxiv link redacted]')
-}
-
 // --- Helpers ---
 
 function formatSize(size: number): string {
@@ -198,14 +185,6 @@ const markdownComponents: Components = {
     <p className="mb-4 leading-relaxed text-slate-700 dark:text-slate-300">{children}</p>
   ),
   a: ({ href, children }) => {
-    // Redact arxiv links in rendered markdown
-    if (href && /arxiv\.org\/(abs|pdf)\//i.test(href)) {
-      return (
-        <span className="text-red-400 line-through" title="Redacted to protect anonymity">
-          [arxiv link redacted]
-        </span>
-      )
-    }
     return (
       <a
         href={href}
@@ -540,13 +519,11 @@ export default function PublicViewerPage() {
   const { meta: frontmatter, body: readmeBody } = readmeSource
     ? extractFrontmatter(readmeSource)
     : { meta: null, body: '' }
-  const showArxivWarning = readmeSource ? hasArxivContent(frontmatter, readmeBody) : false
-  const redactedBody = readmeSource ? redactArxiv(readmeBody) : ''
   // If body is empty after stripping frontmatter (e.g. HF auto-generated cards
   // that are entirely YAML metadata), fall back to the full raw content so the
   // README section isn't blank.
-  const hasReadmeBody = !!redactedBody.trim()
-  const processedReadmeBody = hasReadmeBody ? redactedBody : (readmeSource || '')
+  const hasReadmeBody = !!readmeBody.trim()
+  const processedReadmeBody = hasReadmeBody ? readmeBody : (readmeSource || '')
 
   const isMarkdown =
     currentPath.endsWith('.md') ||
@@ -728,18 +705,6 @@ export default function PublicViewerPage() {
               </svg>
               {repoInfo.original_url}
             </a>
-          </div>
-        )}
-
-        {/* Arxiv warning banner */}
-        {showArxivWarning && (isRootView || isReadmeFile) && (
-          <div className="flex items-start gap-2 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-4">
-            <svg className="w-4 h-4 text-yellow-600 dark:text-yellow-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
-            <p className="text-sm text-yellow-800 dark:text-yellow-300">
-              This README contains arxiv references that may reveal author identity. They have been redacted.
-            </p>
           </div>
         )}
 

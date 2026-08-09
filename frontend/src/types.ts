@@ -61,6 +61,12 @@ export interface PaginatedResponse<T> {
   results: T[]
 }
 
+export interface IdentityFinding {
+  kind: 'arxiv' | 'github' | 'email' | 'author'
+  line: number
+  match: string
+}
+
 export interface TreeEntry {
   type: 'file' | 'directory'
   path: string
