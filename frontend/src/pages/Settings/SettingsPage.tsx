@@ -355,7 +355,7 @@ export default function SettingsPage() {
       {showDeleteConfirm && (
         <ConfirmDialog
           title="Delete Account"
-          message="This will permanently deactivate your account and all anonymous repositories. Reviewers will lose access to your shared content. This cannot be undone."
+          message="This permanently deletes your account, every anonymous repository you created, and the HuggingFace token stored here. Reviewers will lose access immediately and the links cannot be restored. Remember to revoke this app's token at huggingface.co/settings/tokens."
           confirmLabel="Delete My Account"
           danger
           onConfirm={handleDeleteAccount}

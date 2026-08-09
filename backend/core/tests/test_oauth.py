@@ -138,3 +138,41 @@ class TestHuggingFaceOAuth:
         user = User.objects.get(hf_id="hf_user_123")
         assert user.hf_username == "new_name"
         assert user.hf_access_token == "hf_oauth_new_token"
+
+
+@pytest.mark.django_db
+class TestOAuthAfterAccountDeletion:
+    """A deleted account is gone: logging in again creates a fresh user."""
+
+    def _mock_hf(self, sub="hf_user_123"):
+        responses.add(
+            responses.POST,
+            "https://huggingface.co/oauth/token",
+            json={"access_token": "hf_fresh", "refresh_token": "hf_fresh_r", "expires_in": 28800},
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            "https://huggingface.co/oauth/userinfo",
+            json={"sub": sub, "preferred_username": "someone", "email": "s@e.com", "picture": ""},
+            status=200,
+        )
+
+    @responses.activate
+    def test_relogin_after_deletion_creates_a_new_user(self):
+        old = User.objects.create(
+            username="someone", hf_id="hf_user_123", hf_api_token="hf_old_secret"
+        )
+        old_pk = old.pk
+        old.delete()
+
+        self._mock_hf()
+        client = Client()
+        client.get(reverse("hf-login"))
+        state = client.session["oauth_state"]
+        resp = client.get(reverse("hf-callback"), {"code": "abc", "state": state})
+
+        assert resp.status_code == 302
+        new = User.objects.get(hf_id="hf_user_123")
+        assert new.pk != old_pk
+        assert new.hf_api_token == ""

@@ -175,17 +175,16 @@ class LogoutView(View):
 
 
 class DeleteAccountView(APIView):
-    """Soft-delete user account and cascade to repos."""
+    """Permanently delete the account, cascading to repos and activity logs.
+
+    A hard delete leaves no row holding the user's HuggingFace credentials,
+    and frees their hf_id so they can sign up again later.
+    """
 
     permission_classes = [IsAuthenticated]
 
     def delete(self, request):
         user = request.user
-        # Soft-delete all anonymous repos
-        user.anonymousrepo_set.update(status="deleted")
-        # Deactivate user
-        user.is_active = False
-        user.save(update_fields=["is_active"])
-        # Logout
         logout(request)
+        user.delete()
         return Response({"detail": "Account deleted"}, status=status.HTTP_200_OK)

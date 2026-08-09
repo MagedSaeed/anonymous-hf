@@ -1,8 +1,14 @@
 import pytest
+from django.contrib.auth import get_user_model
 from django.test import Client
 from django.urls import reverse
 
+from anonymizer.models import ActivityLog, AnonymousRepo
+from anonymizer.tests.factories import AnonymousRepoFactory
+
 from .factories import UserFactory
+
+User = get_user_model()
 
 
 @pytest.mark.django_db
@@ -131,14 +137,51 @@ class TestLogoutView:
 
 @pytest.mark.django_db
 class TestDeleteAccountView:
-    def test_delete_account_deactivates_user(self):
+    """Deletion is permanent: no row is left holding the user's HF credentials."""
+
+    def test_delete_account_removes_the_user(self):
         user = UserFactory()
         client = Client()
         client.force_login(user)
         response = client.delete(reverse("delete-account"))
         assert response.status_code == 200
-        user.refresh_from_db()
-        assert user.is_active is False
+        assert not User.objects.filter(pk=user.pk).exists()
+
+    def test_delete_account_removes_owned_repos_and_logs(self):
+        user = UserFactory()
+        repo = AnonymousRepoFactory(owner=user)
+        ActivityLog.objects.create(anonymous_repo=repo, action="viewed", actor_type="viewer")
+        client = Client()
+        client.force_login(user)
+        client.delete(reverse("delete-account"))
+        assert not AnonymousRepo.objects.filter(pk=repo.pk).exists()
+        assert not ActivityLog.objects.filter(anonymous_repo_id=repo.pk).exists()
+
+    def test_delete_account_leaves_other_users_untouched(self):
+        other = UserFactory()
+        other_repo = AnonymousRepoFactory(owner=other)
+        user = UserFactory()
+        client = Client()
+        client.force_login(user)
+        client.delete(reverse("delete-account"))
+        assert User.objects.filter(pk=other.pk).exists()
+        assert AnonymousRepo.objects.filter(pk=other_repo.pk).exists()
+
+    def test_delete_account_logs_the_user_out(self):
+        user = UserFactory()
+        client = Client()
+        client.force_login(user)
+        client.delete(reverse("delete-account"))
+        assert "_auth_user_id" not in client.session
+
+    def test_anonymous_link_404s_after_account_deletion(self):
+        user = UserFactory()
+        repo = AnonymousRepoFactory(owner=user)
+        anonymous_id = repo.anonymous_id
+        client = Client()
+        client.force_login(user)
+        client.delete(reverse("delete-account"))
+        assert Client().get(f"/api/a/{anonymous_id}/info/").status_code == 404
 
 
 @pytest.mark.django_db
