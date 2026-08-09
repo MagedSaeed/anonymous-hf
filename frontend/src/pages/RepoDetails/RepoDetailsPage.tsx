@@ -5,6 +5,7 @@ import StatusBadge from '../../components/StatusBadge/StatusBadge'
 import CopyButton from '../../components/CopyButton/CopyButton'
 import ConfirmDialog from '../../components/ConfirmDialog/ConfirmDialog'
 import { parseRepoId, buildHfUrl } from '../../utils'
+import { validateBranch, validateColabUrl } from '../../validation'
 import type { AnonymousRepo, ActivityLog, PaginatedResponse } from '../../types'
 
 const ACTIVITY_PAGE_SIZE = 10
@@ -163,7 +164,11 @@ export default function RepoDetailsPage() {
   }
 
   const handleUpdateBranch = async () => {
-    if (!editBranch.trim()) return
+    const invalid = validateBranch(editBranch)
+    if (invalid) {
+      showError(invalid)
+      return
+    }
     setSavingBranch(true)
     try {
       const res = await apiCall<AnonymousRepo>('PATCH', `/api/repos/${id}/`, {
@@ -192,6 +197,11 @@ export default function RepoDetailsPage() {
   }
 
   const handleUpdateColab = async () => {
+    const invalid = validateColabUrl(editColabUrl)
+    if (invalid) {
+      showError(invalid)
+      return
+    }
     setSavingColab(true)
     try {
       const res = await apiCall<AnonymousRepo>('PATCH', `/api/repos/${id}/`, {

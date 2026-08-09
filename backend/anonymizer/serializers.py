@@ -2,7 +2,11 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from anonymizer.models import ActivityLog, AnonymousRepo
-from anonymizer.services.huggingface_client import parse_hf_url, validate_hf_url
+from anonymizer.services.huggingface_client import (
+    parse_hf_url,
+    validate_colab_url,
+    validate_hf_url,
+)
 
 
 class AnonymousRepoSerializer(serializers.ModelSerializer):
@@ -37,7 +41,39 @@ class AnonymousRepoSerializer(serializers.ModelSerializer):
             "anonymous_url",
             "created_at",
             "updated_at",
+            # Derived from original_url; set in update() rather than accepted.
+            "repo_type",
+            # Driven by the expiry_days parameter so the activity log stays accurate.
+            "expires_at",
         ]
+
+    def validate_original_url(self, value):
+        is_valid, error = validate_hf_url(value)
+        if not is_valid:
+            raise serializers.ValidationError(error)
+        return value
+
+    def validate_branch(self, value):
+        branch = value.strip()
+        if not branch:
+            raise serializers.ValidationError("Branch is required.")
+        if ".." in branch.split("/"):
+            raise serializers.ValidationError("Branch cannot contain '..'.")
+        return branch
+
+    def validate_colab_url(self, value):
+        is_valid, error = validate_colab_url(value)
+        if not is_valid:
+            raise serializers.ValidationError(error)
+        return value
+
+    def update(self, instance, validated_data):
+        # Keep repo_type consistent with the URL it is derived from.
+        if "original_url" in validated_data:
+            parsed = parse_hf_url(validated_data["original_url"])
+            if parsed.get("repo_type"):
+                validated_data["repo_type"] = parsed["repo_type"]
+        return super().update(instance, validated_data)
 
     def get_days_until_expiry(self, obj):
         if obj.expires_at:
@@ -63,6 +99,12 @@ class CreateRepoSerializer(serializers.Serializer):
 
     def validate_original_url(self, value):
         is_valid, error = validate_hf_url(value)
+        if not is_valid:
+            raise serializers.ValidationError(error)
+        return value
+
+    def validate_colab_url(self, value):
+        is_valid, error = validate_colab_url(value)
         if not is_valid:
             raise serializers.ValidationError(error)
         return value

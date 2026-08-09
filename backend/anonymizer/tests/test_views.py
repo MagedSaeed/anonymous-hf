@@ -308,3 +308,109 @@ class TestCreateRepoIdentityScan:
         resp = self._create(authenticated_client)
         assert resp.status_code == 201
         assert resp.json()["identity_findings"] == []
+
+
+@pytest.mark.django_db
+class TestRepoUpdateValidation:
+    """Updates are validated like creates; derived fields are not directly writable."""
+
+    @pytest.fixture
+    def repo(self, user):
+        return AnonymousRepoFactory(
+            owner=user,
+            original_url="https://huggingface.co/datasets/real/repo",
+            repo_type="dataset",
+            branch="main",
+        )
+
+    def _patch(self, client, repo, payload):
+        return client.patch(f"/api/repos/{repo.pk}/", data=payload, content_type="application/json")
+
+    def test_rejects_non_hf_url(self, authenticated_client, repo):
+        r = self._patch(authenticated_client, repo, {"original_url": "https://evil.example.com/x"})
+        assert r.status_code == 400
+
+    def test_rejects_lookalike_domain(self, authenticated_client, repo):
+        r = self._patch(
+            authenticated_client, repo, {"original_url": "https://huggingface.co.evil.com/a/b"}
+        )
+        assert r.status_code == 400
+
+    def test_accepts_valid_hf_url(self, authenticated_client, repo):
+        r = self._patch(
+            authenticated_client, repo, {"original_url": "https://huggingface.co/datasets/a/b"}
+        )
+        assert r.status_code == 200
+
+    def test_accepts_hf_co_url(self, authenticated_client, repo):
+        r = self._patch(authenticated_client, repo, {"original_url": "https://hf.co/datasets/a/b"})
+        assert r.status_code == 200
+
+    def test_repo_type_follows_the_url(self, authenticated_client, repo):
+        r = self._patch(authenticated_client, repo, {"original_url": "https://huggingface.co/a/b"})
+        assert r.status_code == 200
+        repo.refresh_from_db()
+        assert repo.repo_type == "model"
+
+    def test_repo_type_is_not_directly_writable(self, authenticated_client, repo):
+        self._patch(authenticated_client, repo, {"repo_type": "model"})
+        repo.refresh_from_db()
+        assert repo.repo_type == "dataset"
+
+    def test_expires_at_is_not_directly_writable(self, authenticated_client, repo):
+        before = repo.expires_at
+        self._patch(authenticated_client, repo, {"expires_at": "2099-01-01T00:00:00Z"})
+        repo.refresh_from_db()
+        assert repo.expires_at == before
+
+    def test_rejects_branch_with_parent_segment(self, authenticated_client, repo):
+        r = self._patch(authenticated_client, repo, {"branch": "../../.."})
+        assert r.status_code == 400
+
+    def test_rejects_blank_branch(self, authenticated_client, repo):
+        r = self._patch(authenticated_client, repo, {"branch": "   "})
+        assert r.status_code == 400
+
+    def test_accepts_valid_branch(self, authenticated_client, repo):
+        r = self._patch(authenticated_client, repo, {"branch": "anon-v2"})
+        assert r.status_code == 200
+        repo.refresh_from_db()
+        assert repo.branch == "anon-v2"
+
+    def test_rejects_non_colab_url(self, authenticated_client, repo):
+        r = self._patch(authenticated_client, repo, {"colab_url": "https://evil.example.com/nb"})
+        assert r.status_code == 400
+
+    def test_accepts_colab_url(self, authenticated_client, repo):
+        url = "https://colab.research.google.com/drive/1a2b3c"
+        r = self._patch(authenticated_client, repo, {"colab_url": url})
+        assert r.status_code == 200
+
+    def test_accepts_blank_colab_url(self, authenticated_client, repo):
+        r = self._patch(authenticated_client, repo, {"colab_url": ""})
+        assert r.status_code == 200
+
+    def test_extend_expiry_still_works(self, authenticated_client, repo):
+        before = repo.expires_at  # factory default is now + 90 days
+        r = self._patch(authenticated_client, repo, {"expiry_days": 120})
+        assert r.status_code == 200
+        repo.refresh_from_db()
+        assert repo.expires_at > before
+
+    def test_restore_still_works(self, authenticated_client, user):
+        deleted = AnonymousRepoFactory(owner=user, status="deleted")
+        r = self._patch(authenticated_client, deleted, {"status": "active"})
+        assert r.status_code == 200
+        deleted.refresh_from_db()
+        assert deleted.status == "active"
+
+    def test_create_rejects_non_colab_url(self, authenticated_client):
+        r = authenticated_client.post(
+            "/api/repos/",
+            data={
+                "original_url": "https://huggingface.co/datasets/a/b",
+                "colab_url": "https://evil.example.com/nb",
+            },
+            content_type="application/json",
+        )
+        assert r.status_code == 400

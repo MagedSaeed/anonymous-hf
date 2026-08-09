@@ -5,6 +5,9 @@ import requests
 
 HF_API_BASE = "https://huggingface.co/api"
 
+# Matched against the parsed hostname, never as a substring of the URL.
+HF_HOSTNAMES = frozenset(["huggingface.co", "www.huggingface.co", "hf.co", "www.hf.co"])
+
 
 def _safe_repo_path(path):
     """Percent-encode a user-supplied path for use in a HuggingFace URL.
@@ -37,7 +40,7 @@ def parse_hf_url(url):
     Returns dict with keys: repo_type, repo_id, branch (optional)
     """
     parsed = urlparse(url)
-    if parsed.hostname not in ("huggingface.co", "www.huggingface.co"):
+    if parsed.hostname not in HF_HOSTNAMES:
         return {}
 
     path = parsed.path.strip("/")
@@ -287,6 +290,20 @@ def get_latest_commit(repo_id, repo_type="dataset", branch="main", token=None):
     if info:
         return info.get("sha")
     return None
+
+
+COLAB_HOSTNAMES = frozenset(["colab.research.google.com", "colab.google.com"])
+
+
+def validate_colab_url(url):
+    """Validate an optional Colab URL. Returns (is_valid, error_message)."""
+    if not url:
+        return True, None
+
+    if urlparse(url).hostname not in COLAB_HOSTNAMES:
+        return False, "Not a valid Colab URL. Expected a colab.research.google.com link."
+
+    return True, None
 
 
 def validate_hf_url(url):

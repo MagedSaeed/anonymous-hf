@@ -5,6 +5,7 @@ import CopyButton from '../../components/CopyButton/CopyButton'
 import CodeSnippet from '../../components/CodeSnippet/CodeSnippet'
 import { Link } from 'react-router-dom'
 import type { HFRepo, IdentityFinding } from '../../types'
+import { validateBranch, validateColabUrl, validateHfUrl } from '../../validation'
 
 interface CreateResult {
   id: number
@@ -257,11 +258,17 @@ export default function CreateRepoPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    const url = inputMode === 'url' ? originalUrl.trim() : normalizeInput(originalUrl, repoType)
+    const invalid = validateHfUrl(url) || validateBranch(branch) || validateColabUrl(colabUrl)
+    if (invalid) {
+      setError(invalid)
+      return
+    }
     setLoading(true)
     setError(null)
     try {
       const payload: Record<string, unknown> = {
-        original_url: inputMode === 'url' ? originalUrl.trim() : normalizeInput(originalUrl, repoType),
+        original_url: url,
         branch,
         expiry_days: expiryDays,
       }

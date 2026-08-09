@@ -171,3 +171,23 @@ class TestPathTraversalRejection:
     def test_get_tree_rejects_parent_segment_without_calling_hf(self):
         assert get_tree("user/repo", "dataset", "main", "../..") is None
         assert len(responses.calls) == 0
+
+
+class TestParseHfShortDomain:
+    def test_hf_co_dataset(self):
+        assert parse_hf_url("https://hf.co/datasets/user/repo") == {
+            "repo_type": "dataset",
+            "repo_id": "user/repo",
+        }
+
+    def test_hf_co_model(self):
+        assert parse_hf_url("https://hf.co/user/repo") == {
+            "repo_type": "model",
+            "repo_id": "user/repo",
+        }
+
+    def test_lookalike_domain_rejected(self):
+        assert parse_hf_url("https://huggingface.co.evil.com/user/repo") == {}
+
+    def test_substring_in_path_rejected(self):
+        assert parse_hf_url("https://evil.com/huggingface.co/user/repo") == {}
